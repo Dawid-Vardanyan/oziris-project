@@ -145,7 +145,7 @@
                 </button>
                 <div class="flex flex-col">
                     <h2 id="currentChatTitle" class="font-semibold text-gray-100 line-clamp-1 text-sm md:text-base">Nowa Konwersacja</h2>
-                    <span id="systemStatus" class="text-xs text-gray-400 flex items-center gap-1" title="Sprawdzanie statusu systemu...">
+                    <span id="systemStatus" class="text-xs text-gray-400 flex items-center gap-1" title="Status systemu nie został jeszcze sprawdzony.">
                         <span id="systemStatusDot" class="w-2 h-2 rounded-full bg-gray-500 animate-pulse"></span>
                         <span id="systemStatusText">System: sprawdzanie...</span>
                     </span>
@@ -281,9 +281,10 @@
             constructor() {
                 // DOMYŚLNY ADRES WEBHOOKA (Wpisz tu swój adres na sztywno)
                 const DEFAULT_WEBHOOK_URL = 'http://localhost:5678/webhook/0b752720-3a66-45f8-9aa0-43f57356c93f';
+
                 // UKRYTY WEBHOOK STATUSU - nie jest widoczny w konfiguracji UI.
-                // Podmień ten adres na właściwy webhook pingujący N8N / system bazowy.
-                this.statusWebhookUrl = 'http://localhost:5678/webhook/88504f84-6bf3-4570-872e-317ca0df1925;
+                // Uwaga: to nadal frontend, więc technicznie da się go podejrzeć w DevTools.
+                this.statusWebhookUrl = 'http://localhost:5678/webhook/88504f84-6bf3-4570-872e-317ca0df1925';
                 this.statusCheckIntervalMs = 60 * 1000;
                 this.statusCheckTimeoutMs = 8000;
 
@@ -304,7 +305,7 @@
 
             /**
              * Sprawdza status systemu przez ukryty webhook pingujący.
-             * Webhook powinien zwrócić JSON: { "isRunning": "true" }
+             * Webhook powinien odpowiedzieć JSON-em: { "isRunning": "true" }
              */
             async pingSystemStatus() {
                 if (!this.statusWebhookUrl) {
@@ -316,12 +317,18 @@
 
                 try {
                     const response = await fetch(this.statusWebhookUrl, {
-                        method: 'GET',
+                        method: 'POST',
                         cache: 'no-store',
                         signal: controller.signal,
                         headers: {
-                            'Accept': 'application/json'
-                        }
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            action: 'ping',
+                            timestamp: new Date().toISOString(),
+                            client: 'OZIRIS Web Wrapper'
+                        })
                     });
 
                     if (!response.ok) {
@@ -331,7 +338,7 @@
                     const data = await response.json();
                     return data?.isRunning === true || data?.isRunning === 'true';
                 } catch (error) {
-                    console.warn('[N8N STATUS] System offline lub webhook statusu nie odpowiada:', error);
+                    console.warn('[N8N STATUS] System offline albo webhook statusu nie odpowiada:', error);
                     return false;
                 } finally {
                     clearTimeout(timeoutId);
@@ -551,6 +558,7 @@
             dragDepth: 0,
             toastTimeoutId: null,
             statusIntervalId: null,
+            isCheckingSystemStatus: false,
 
             init() {
                 AppState.init();
@@ -579,11 +587,11 @@
                         wrapper: 'text-red-400',
                         dot: 'bg-red-500',
                         text: 'System Offline',
-                        title: 'System nie odpowiada na ping statusu.'
+                        title: 'System nie odpowiada na webhook statusu.'
                     }
                 };
-                const statusConfig = statusMap[status] || statusMap.checking;
 
+                const statusConfig = statusMap[status] || statusMap.checking;
                 this.els.systemStatus.className = `text-xs ${statusConfig.wrapper} flex items-center gap-1`;
                 this.els.systemStatus.title = statusConfig.title;
                 this.els.systemStatusDot.className = `w-2 h-2 rounded-full ${statusConfig.dot}`;
@@ -591,14 +599,24 @@
             },
 
             async checkSystemStatus() {
-                this.setSystemStatus('checking');
-                const isOnline = await this.api.pingSystemStatus();
-                this.setSystemStatus(isOnline ? 'online' : 'offline');
+                if (this.isCheckingSystemStatus) {
+                    return;
+                }
+
+                this.isCheckingSystemStatus = true;
+
+                try {
+                    const isOnline = await this.api.pingSystemStatus();
+                    this.setSystemStatus(isOnline ? 'online' : 'offline');
+                } finally {
+                    this.isCheckingSystemStatus = false;
+                }
             },
 
             startSystemStatusMonitor() {
-                this.checkSystemStatus();
                 clearInterval(this.statusIntervalId);
+                this.setSystemStatus('checking');
+                this.checkSystemStatus();
                 this.statusIntervalId = setInterval(() => {
                     this.checkSystemStatus();
                 }, this.api.statusCheckIntervalMs);
