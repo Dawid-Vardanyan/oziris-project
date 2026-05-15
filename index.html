@@ -145,8 +145,9 @@
                 </button>
                 <div class="flex flex-col">
                     <h2 id="currentChatTitle" class="font-semibold text-gray-100 line-clamp-1 text-sm md:text-base">Nowa Konwersacja</h2>
-                    <span class="text-xs text-oziris-500 flex items-center gap-1">
-                        <span class="w-2 h-2 rounded-full bg-oziris-500 animate-pulse"></span> System Online
+                    <span id="systemStatus" class="text-xs text-gray-400 flex items-center gap-1" title="Sprawdzanie statusu systemu...">
+                        <span id="systemStatusDot" class="w-2 h-2 rounded-full bg-gray-500 animate-pulse"></span>
+                        <span id="systemStatusText">System: sprawdzanie...</span>
                     </span>
                 </div>
             </div>
@@ -280,6 +281,11 @@
             constructor() {
                 // DOMYŚLNY ADRES WEBHOOKA (Wpisz tu swój adres na sztywno)
                 const DEFAULT_WEBHOOK_URL = 'http://localhost:5678/webhook/0b752720-3a66-45f8-9aa0-43f57356c93f';
+                // UKRYTY WEBHOOK STATUSU - nie jest widoczny w konfiguracji UI.
+                // Podmień ten adres na właściwy webhook pingujący N8N / system bazowy.
+                this.statusWebhookUrl = 'http://localhost:5678/webhook/88504f84-6bf3-4570-872e-317ca0df1925;
+                this.statusCheckIntervalMs = 60 * 1000;
+                this.statusCheckTimeoutMs = 8000;
 
                 // Domyślne dane, ładowane z localStorage (nadpisują domyślne ustawienia z kodu)
                 this.config = {
@@ -294,6 +300,42 @@
                 localStorage.setItem('oziris_n8n_url', this.config.webhookUrl);
                 localStorage.setItem('oziris_n8n_token', this.config.bearerToken);
                 localStorage.setItem('oziris_n8n_prompt', this.config.systemPrompt);
+            }
+
+            /**
+             * Sprawdza status systemu przez ukryty webhook pingujący.
+             * Webhook powinien zwrócić JSON: { "isRunning": "true" }
+             */
+            async pingSystemStatus() {
+                if (!this.statusWebhookUrl) {
+                    return false;
+                }
+
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), this.statusCheckTimeoutMs);
+
+                try {
+                    const response = await fetch(this.statusWebhookUrl, {
+                        method: 'GET',
+                        cache: 'no-store',
+                        signal: controller.signal,
+                        headers: {
+                            'Accept': 'application/json'
+                        }
+                    });
+
+                    if (!response.ok) {
+                        return false;
+                    }
+
+                    const data = await response.json();
+                    return data?.isRunning === true || data?.isRunning === 'true';
+                } catch (error) {
+                    console.warn('[N8N STATUS] System offline lub webhook statusu nie odpowiada:', error);
+                    return false;
+                } finally {
+                    clearTimeout(timeoutId);
+                }
             }
 
             /**
@@ -484,6 +526,9 @@
                 toast: document.getElementById('toast'),
                 toastMessage: document.getElementById('toastMessage'),
                 currentChatTitle: document.getElementById('currentChatTitle'),
+                systemStatus: document.getElementById('systemStatus'),
+                systemStatusDot: document.getElementById('systemStatusDot'),
+                systemStatusText: document.getElementById('systemStatusText'),
                 typingIndicator: document.getElementById('typingIndicator'),
                 clearChatBtn: document.getElementById('clearChatBtn'),
                 
@@ -505,6 +550,7 @@
             allowedFileExtensions: ['txt', 'md', 'markdown', 'json', 'csv', 'log', 'xml', 'yaml', 'yml'],
             dragDepth: 0,
             toastTimeoutId: null,
+            statusIntervalId: null,
 
             init() {
                 AppState.init();
@@ -512,6 +558,50 @@
                 this.renderSidebar();
                 this.renderCurrentChat();
                 this.updateSendButtonState();
+                this.startSystemStatusMonitor();
+            },
+
+            setSystemStatus(status) {
+                const statusMap = {
+                    checking: {
+                        wrapper: 'text-gray-400',
+                        dot: 'bg-gray-500 animate-pulse',
+                        text: 'System: sprawdzanie...',
+                        title: 'Trwa sprawdzanie statusu systemu.'
+                    },
+                    online: {
+                        wrapper: 'text-oziris-500',
+                        dot: 'bg-oziris-500 animate-pulse',
+                        text: 'System Online',
+                        title: 'System odpowiada poprawnie.'
+                    },
+                    offline: {
+                        wrapper: 'text-red-400',
+                        dot: 'bg-red-500',
+                        text: 'System Offline',
+                        title: 'System nie odpowiada na ping statusu.'
+                    }
+                };
+                const statusConfig = statusMap[status] || statusMap.checking;
+
+                this.els.systemStatus.className = `text-xs ${statusConfig.wrapper} flex items-center gap-1`;
+                this.els.systemStatus.title = statusConfig.title;
+                this.els.systemStatusDot.className = `w-2 h-2 rounded-full ${statusConfig.dot}`;
+                this.els.systemStatusText.textContent = statusConfig.text;
+            },
+
+            async checkSystemStatus() {
+                this.setSystemStatus('checking');
+                const isOnline = await this.api.pingSystemStatus();
+                this.setSystemStatus(isOnline ? 'online' : 'offline');
+            },
+
+            startSystemStatusMonitor() {
+                this.checkSystemStatus();
+                clearInterval(this.statusIntervalId);
+                this.statusIntervalId = setInterval(() => {
+                    this.checkSystemStatus();
+                }, this.api.statusCheckIntervalMs);
             },
 
             bindEvents() {
