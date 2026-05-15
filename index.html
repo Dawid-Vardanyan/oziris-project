@@ -173,21 +173,38 @@
         <!-- Panel wprowadzania -->
         <div class="flex-shrink-0 w-full border-t border-gray-800 bg-oziris-900 px-4 py-4 md:px-8 z-20">
             <div class="max-w-4xl mx-auto relative group">
-                <div class="absolute -inset-1 bg-gradient-to-r from-oziris-500/20 to-blue-500/20 rounded-xl blur opacity-25 group-focus-within:opacity-75 transition duration-500"></div>
+                <div class="pointer-events-none absolute -inset-1 bg-gradient-to-r from-oziris-500/20 to-blue-500/20 rounded-xl blur opacity-25 group-focus-within:opacity-75 transition duration-500"></div>
+                <div id="selectedFilePreview" class="hidden mb-2 rounded-xl border border-gray-700 bg-gray-800/80 px-3 py-2 text-sm text-gray-300">
+                    <div class="flex items-center justify-between gap-3">
+                        <div class="flex min-w-0 items-center gap-2">
+                            <i class="ph ph-file-text text-oziris-400 text-lg"></i>
+                            <div class="min-w-0">
+                                <div id="selectedFileName" class="truncate font-medium text-gray-100"></div>
+                                <div id="selectedFileMeta" class="text-xs text-gray-500"></div>
+                            </div>
+                        </div>
+                        <button type="button" id="removeFileBtn" class="flex-shrink-0 rounded-lg p-1 text-gray-500 hover:bg-gray-700 hover:text-red-400 transition-colors" title="Usuń załącznik">
+                            <i class="ph ph-x text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
                 <div class="relative bg-gray-800 border border-gray-700 rounded-xl flex items-end shadow-2xl overflow-hidden">
                     
-                    <button class="p-4 text-gray-400 hover:text-oziris-400 transition-colors" title="Załącz plik / Kontekst n8n">
+                    <input id="fileInput" type="file" class="hidden" accept=".txt,.md,.markdown,.json,.csv,.log,.xml,.yaml,.yml,text/*,application/json" aria-label="Wybierz plik tekstowy do wysłania">
+
+                    <button type="button" id="attachFileBtn" class="p-4 text-gray-400 hover:text-oziris-400 transition-colors" title="Załącz plik tekstowy / Kontekst n8n">
                         <i class="ph ph-paperclip text-xl"></i>
                     </button>
                     
                     <textarea id="chatInput" rows="1" placeholder="Napisz do OZIRISa... (Shift+Enter dla nowej linii)" class="flex-1 bg-transparent border-none focus:ring-0 resize-none py-4 text-gray-100 placeholder-gray-500 min-h-[56px] max-h-48 scrollbar-hide"></textarea>
                     
-                    <button id="sendBtn" class="p-4 text-oziris-500 hover:text-white hover:bg-oziris-500 transition-all m-1 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-oziris-500">
+                    <button type="button" id="sendBtn" class="p-4 text-oziris-500 hover:text-white hover:bg-oziris-500 transition-all m-1 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-oziris-500">
                         <i class="ph-fill ph-paper-plane-right text-xl"></i>
                     </button>
                 </div>
                 <div class="text-center mt-2 text-[10px] text-gray-500 font-mono">
-                    System bazowy: N8N AI Agent połączony poprzez Webhook API
+                    System bazowy: N8N Webhook API • JSON: chatInput + attachments[]
                 </div>
             </div>
         </div>
@@ -254,8 +271,9 @@
              * @param {string} userMessage - Wiadomość użytkownika
              * @param {string} sessionId - ID obecnej sesji, by N8N wiedziało, z jakim kontekstem pracować (np. w pamięci np. Redis)
              * @param {Array} chatHistory - (Opcjonalnie) przekazywanie pełnej historii, jeśli N8N nie ma własnej bazy pamięci
+             * @param {Array} attachedFiles - Pliki tekstowe odczytane po stronie przeglądarki
              */
-            async sendMessage(userMessage, sessionId, chatHistory = []) {
+            async sendMessage(userMessage, sessionId, chatHistory = [], attachedFiles = []) {
                 console.log(`[N8N API] Wywoływanie webhooka dla sesji: ${sessionId}`);
                 
                 // Formatowanie payloadu zgodnego z tym, co N8N zwykle przyjmuje ze swoich Webhook nodes
@@ -268,7 +286,8 @@
                         client: "OZIRIS Web Wrapper v1.0",
                         systemPrompt: this.config.systemPrompt
                     },
-                    history: chatHistory // W przypadku przekazywania pełnego kontekstu w locie
+                    history: chatHistory, // W przypadku przekazywania pełnego kontekstu w locie
+                    attachments: attachedFiles
                 };
 
                 // ---- RZECZYWISTY KOD DO ODKOMENTOWANIA GDY N8N JEST PODPIĘTE ----
@@ -328,7 +347,7 @@
          * STAN APLIKACJI - Lokalna pamięć dla sesji
          */
         const AppState = {
-            sessions: [], // Tablica obiektów: { id, title, updatedAt, messages: [{role, text, timestamp}] }
+            sessions: [], // Tablica obiektów: { id, title, updatedAt, messages: [{role, text, timestamp, attachments?}] }
             currentSessionId: null,
 
             init() {
@@ -370,10 +389,10 @@
                 return this.sessions.find(s => s.id === this.currentSessionId);
             },
 
-            addMessage(role, text) {
+            addMessage(role, text, attachments = []) {
                 const session = this.getCurrentSession();
                 if (session) {
-                    session.messages.push({ role, text, timestamp: Date.now() });
+                    session.messages.push({ role, text, attachments, timestamp: Date.now() });
                     session.updatedAt = Date.now();
                     
                     // Automatyczne generowanie tytułu, jeśli to pierwsza wiadomość użytkownika
@@ -424,6 +443,12 @@
                 messagesContainer: document.getElementById('messagesContainer'),
                 chatInput: document.getElementById('chatInput'),
                 sendBtn: document.getElementById('sendBtn'),
+                attachFileBtn: document.getElementById('attachFileBtn'),
+                fileInput: document.getElementById('fileInput'),
+                selectedFilePreview: document.getElementById('selectedFilePreview'),
+                selectedFileName: document.getElementById('selectedFileName'),
+                selectedFileMeta: document.getElementById('selectedFileMeta'),
+                removeFileBtn: document.getElementById('removeFileBtn'),
                 currentChatTitle: document.getElementById('currentChatTitle'),
                 typingIndicator: document.getElementById('typingIndicator'),
                 clearChatBtn: document.getElementById('clearChatBtn'),
@@ -441,12 +466,15 @@
 
             api: new N8nIntegration(),
             isGenerating: false,
+            selectedAttachedFiles: [],
+            maxTextFileSizeBytes: 1024 * 1024,
 
             init() {
                 AppState.init();
                 this.bindEvents();
                 this.renderSidebar();
                 this.renderCurrentChat();
+                this.updateSendButtonState();
             },
 
             bindEvents() {
@@ -475,7 +503,22 @@
                 this.els.chatInput.addEventListener('input', () => {
                     this.els.chatInput.style.height = 'auto';
                     this.els.chatInput.style.height = (this.els.chatInput.scrollHeight) + 'px';
-                    this.els.sendBtn.disabled = this.els.chatInput.value.trim() === '';
+                    this.updateSendButtonState();
+                });
+
+                if (!this.els.attachFileBtn || !this.els.fileInput) {
+                    console.error('Brakuje elementów attachFileBtn/fileInput. Sprawdź HTML przy spinaczu.');
+                } else {
+                    this.els.attachFileBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        this.els.fileInput.click();
+                    });
+                    this.els.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
+                }
+
+                this.els.removeFileBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    this.clearSelectedFile();
                 });
 
                 this.els.chatInput.addEventListener('keydown', (e) => {
@@ -584,13 +627,13 @@
                     this.els.messagesContainer.classList.remove('hidden');
                     
                     session.messages.forEach(msg => {
-                        this.appendMessageElement(msg.role, msg.text);
+                        this.appendMessageElement(msg.role, msg.text, msg.attachments || []);
                     });
                     this.scrollToBottom();
                 }
             },
 
-            appendMessageElement(role, text) {
+            appendMessageElement(role, text, attachments = []) {
                 const msgDiv = document.createElement('div');
                 const isUser = role === 'user';
                 
@@ -609,11 +652,94 @@
                                         .replace(/`(.*?)`/g, '<code class="bg-gray-900 px-1 py-0.5 rounded text-oziris-400 font-mono text-sm">$1</code>');
 
                 bubble.className = `p-4 rounded-2xl ${isUser ? 'bg-oziris-500 text-white rounded-br-sm shadow-[0_4px_15px_rgba(6,182,212,0.2)]' : 'bg-gray-800 border border-gray-700 text-gray-100 rounded-bl-sm'}`;
-                bubble.innerHTML = `<div class="leading-relaxed text-sm md:text-base">${formattedText}</div>`;
+
+                const attachmentHtml = attachments.length > 0
+                    ? `<div class="mb-3 flex flex-wrap gap-2">${attachments.map(file => `
+                        <div class="flex items-center gap-2 rounded-lg ${isUser ? 'bg-cyan-700/40' : 'bg-gray-900'} px-2.5 py-1.5 text-xs">
+                            <i class="ph ph-file-text"></i>
+                            <span class="max-w-[220px] truncate">${this.escapeHtml(file.name)}</span>
+                            <span class="opacity-70">${this.formatBytes(file.size)}</span>
+                        </div>
+                    `).join('')}</div>`
+                    : '';
+
+                bubble.innerHTML = `${attachmentHtml}<div class="leading-relaxed text-sm md:text-base">${formattedText}</div>`;
 
                 msgDiv.appendChild(avatar);
                 msgDiv.appendChild(bubble);
                 this.els.messagesContainer.appendChild(msgDiv);
+            },
+
+            escapeHtml(value) {
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            },
+
+            formatBytes(bytes) {
+                if (!bytes) return '0 B';
+                const units = ['B', 'KB', 'MB'];
+                const index = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), units.length - 1);
+                return `${(bytes / Math.pow(1024, index)).toFixed(index === 0 ? 0 : 1)} ${units[index]}`;
+            },
+
+            updateSendButtonState() {
+                const hasText = this.els.chatInput.value.trim() !== '';
+                const hasFile = this.selectedAttachedFiles.length > 0;
+                this.els.sendBtn.disabled = this.isGenerating || (!hasText && !hasFile);
+            },
+
+            clearSelectedFile() {
+                this.selectedAttachedFiles = [];
+                this.els.fileInput.value = '';
+                this.els.selectedFilePreview.classList.add('hidden');
+                this.els.selectedFileName.textContent = '';
+                this.els.selectedFileMeta.textContent = '';
+                this.updateSendButtonState();
+            },
+
+            async handleFileSelect(event) {
+                const file = event.target.files?.[0];
+                if (!file) return;
+
+                const allowedExtensions = ['txt', 'md', 'markdown', 'json', 'csv', 'log', 'xml', 'yaml', 'yml'];
+                const extension = file.name.split('.').pop()?.toLowerCase() || '';
+                const isTextMime = file.type.startsWith('text/') || file.type === 'application/json' || file.type === '';
+
+                if (!allowedExtensions.includes(extension) && !isTextMime) {
+                    alert('Na razie obsługiwane są tylko pliki tekstowe: TXT, MD, JSON, CSV, LOG, XML, YAML. Tak, PDF też kiedyś, spokojnie, cywilizacja ma etapy.');
+                    this.clearSelectedFile();
+                    return;
+                }
+
+                if (file.size > this.maxTextFileSizeBytes) {
+                    alert(`Plik jest za duży. Aktualny limit to ${this.formatBytes(this.maxTextFileSizeBytes)} dla pliku tekstowego.`);
+                    this.clearSelectedFile();
+                    return;
+                }
+
+                try {
+                    const content = await file.text();
+                    this.selectedAttachedFiles = [{
+                        name: file.name,
+                        type: file.type || 'text/plain',
+                        size: file.size,
+                        lastModified: file.lastModified,
+                        content
+                    }];
+
+                    this.els.selectedFileName.textContent = file.name;
+                    this.els.selectedFileMeta.textContent = `${this.formatBytes(file.size)} • ${file.type || 'text/plain'}`;
+                    this.els.selectedFilePreview.classList.remove('hidden');
+                    this.updateSendButtonState();
+                } catch (error) {
+                    console.error('Nie udało się odczytać pliku:', error);
+                    alert('Nie udało się odczytać pliku po stronie przeglądarki. Magiczny świat plików znowu wygrał.');
+                    this.clearSelectedFile();
+                }
             },
 
             scrollToBottom() {
@@ -627,11 +753,13 @@
                 if (this.isGenerating) return;
                 
                 const text = this.els.chatInput.value.trim();
-                if (!text) return;
+                const attachedFiles = [...this.selectedAttachedFiles];
+                if (!text && attachedFiles.length === 0) return;
 
                 // 1. Zaktualizuj UI (Wiadomość użytkownika)
                 this.els.chatInput.value = '';
                 this.els.chatInput.style.height = 'auto'; // Reset height
+                this.clearSelectedFile();
                 this.els.sendBtn.disabled = true;
                 
                 // Ukryj empty state jeśli istnieje
@@ -640,8 +768,9 @@
                     this.els.messagesContainer.classList.remove('hidden');
                 }
 
-                AppState.addMessage('user', text);
-                this.appendMessageElement('user', text);
+                const displayText = text || '[Załączono plik do analizy]';
+                AppState.addMessage('user', displayText, attachedFiles.map(({ content, ...fileMeta }) => fileMeta));
+                this.appendMessageElement('user', displayText, attachedFiles.map(({ content, ...fileMeta }) => fileMeta));
                 this.scrollToBottom();
                 this.renderSidebar(); // Aktualizacja tytułu jeśli to pierwsza wiadomość
 
@@ -655,9 +784,17 @@
                     // 3. Wywołanie klasy odpowiedzialnej za N8N
                     const session = AppState.getCurrentSession();
                     // Zbieramy historię w prostym formacie dla N8N jeśli to potrzebne (ostatnie 10 wiadomości)
-                    const historyForApi = session.messages.slice(-10).map(m => ({ role: m.role, content: m.text }));
+                    const historyForApi = session.messages.slice(-10).map(m => ({
+                        role: m.role,
+                        content: m.text,
+                        attachments: (m.attachments || []).map(file => ({
+                            name: file.name,
+                            type: file.type,
+                            size: file.size
+                        }))
+                    }));
 
-                    const aiResponse = await this.api.sendMessage(text, session.id, historyForApi);
+                    const aiResponse = await this.api.sendMessage(text, session.id, historyForApi, attachedFiles);
                     
                     // 4. Obsługa odpowiedzi
                     this.els.typingIndicator.classList.add('hidden'); // Ukryj wskaźnik
@@ -672,6 +809,7 @@
                     this.appendMessageElement('ai', errorMsg);
                 } finally {
                     this.isGenerating = false;
+                    this.updateSendButtonState();
                     this.scrollToBottom();
                 }
             }
