@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project: OZIRIS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        oziris: {
+                            900: '#0B0F19', // Głębsze tło
+                            800: '#111827', // Pasek boczny / elementy
+                            700: '#1F2937', // Ramki, hover
+                            500: '#06B6D4', // Akcent (Cyan)
+                            400: '#22D3EE', // Jasny akcent
+                        }
+                    },
+                    animation: {
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            background-color: #0B0F19;
+            color: #F3F4F6;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111827; 
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151; 
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4B5563; 
+        }
+
+        /* Typing indicator dots */
+        .typing-dot {
+            animation: typing 1.4s infinite ease-in-out both;
+        }
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+        
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        .glass-panel {
+            background: rgba(17, 24, 39, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+    </style>
+</head>
+<body class="h-screen w-full flex overflow-hidden selection:bg-oziris-500 selection:text-white">
+
+    <!-- Pasek boczny - Sesje -->
+    <aside id="sidebar" class="w-72 bg-oziris-800 border-r border-gray-800 flex flex-col transition-transform duration-300 absolute md:relative z-40 h-full -translate-x-full md:translate-x-0">
+        <div class="p-4 border-b border-gray-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="ph-fill ph-hexagon text-oziris-400 text-2xl"></i>
+                <h1 class="font-bold text-xl tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-oziris-400 to-blue-500">
+                    OZIRIS
+                </h1>
+            </div>
+            <button id="closeSidebarBtn" class="md:hidden text-gray-400 hover:text-white">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+
+        <div class="p-3">
+            <button id="newChatBtn" class="w-full flex items-center justify-center gap-2 bg-oziris-500 hover:bg-cyan-600 text-white py-2.5 rounded-lg font-medium transition-colors shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                <i class="ph ph-plus-circle text-lg"></i>
+                Nowa Konwersacja
+            </button>
+        </div>
+
+        <!-- Lista konwersacji -->
+        <div id="sessionsList" class="flex-1 overflow-y-auto p-3 space-y-1">
+            <!-- Tutaj będą dynamicznie renderowane sesje -->
+        </div>
+
+        <div class="p-4 border-t border-gray-800">
+            <button id="settingsBtn" class="w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 p-2 rounded transition-colors">
+                <i class="ph ph-gear text-xl"></i>
+                <span class="font-medium text-sm">Konfiguracja N8N</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Overlay dla urządzeń mobilnych -->
+    <div id="mobileOverlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden glass-panel"></div>
+
+    <!-- Główny obszar aplikacji -->
+    <main class="flex-1 flex flex-col bg-oziris-900 relative h-full w-full">
+        
+        <!-- Nagłówek czatu -->
+        <header class="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-gray-800 glass-panel z-10">
+            <div class="flex items-center gap-3">
+                <button id="openSidebarBtn" class="md:hidden text-gray-400 hover:text-white p-1">
+                    <i class="ph ph-list text-2xl"></i>
+                </button>
+                <div class="flex flex-col">
+                    <h2 id="currentChatTitle" class="font-semibold text-gray-100 line-clamp-1 text-sm md:text-base">Nowa Konwersacja</h2>
+                    <span class="text-xs text-oziris-500 flex items-center gap-1">
+                        <span class="w-2 h-2 rounded-full bg-oziris-500 animate-pulse"></span> System Online
+                    </span>
+                </div>
+            </div>
+            <div class="flex gap-3 text-gray-400">
+                <button class="hover:text-white transition-colors" title="Eksportuj konwersację"><i class="ph ph-export text-xl"></i></button>
+                <button id="clearChatBtn" class="hover:text-red-400 transition-colors" title="Wyczyść obecny czat"><i class="ph ph-trash text-xl"></i></button>
+            </div>
+        </header>
+
+        <!-- Obszar wiadomości -->
+        <div id="chatArea" class="flex-1 overflow-y-auto p-4 md:p-8 space-y-6 scroll-smooth pb-32">
+            <!-- Ekran powitalny (Pusty stan) -->
+            <div id="emptyState" class="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto opacity-100 transition-opacity duration-300">
+                <div class="w-20 h-20 bg-gray-800 rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(6,182,212,0.15)] border border-gray-700">
+                    <i class="ph-fill ph-cpu text-4xl text-oziris-400"></i>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Project: <span class="text-oziris-400">OZIRIS</span></h3>
+                <p class="text-gray-400 mb-8 text-sm md:text-base">Zintegrowany interfejs sztucznej inteligencji. Gotowy do przyjęcia instrukcji i wykonania zadań poprzez sieć N8N.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+                    <button class="suggestion-btn text-left p-3 border border-gray-700 rounded-lg bg-gray-800/50 hover:bg-gray-700 hover:border-oziris-500 transition-all text-sm text-gray-300">
+                        Przeanalizuj ostatnie logi z serwera...
+                    </button>
+                    <button class="suggestion-btn text-left p-3 border border-gray-700 rounded-lg bg-gray-800/50 hover:bg-gray-700 hover:border-oziris-500 transition-all text-sm text-gray-300">
+                        Uruchom workflow raportowania...
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kontener na dynamiczne wiadomości -->
+            <div id="messagesContainer" class="space-y-6 hidden"></div>
+
+            <!-- Wskaźnik pisania (ukryty domyślnie) -->
+            <div id="typingIndicator" class="hidden flex items-end gap-3 max-w-[85%] sm:max-w-3xl">
+                <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0 border border-oziris-500/30">
+                    <i class="ph-fill ph-hexagon text-oziris-400 text-sm"></i>
+                </div>
+                <div class="bg-gray-800 border border-gray-700 p-4 rounded-2xl rounded-bl-sm">
+                    <div class="flex gap-1.5 items-center h-4">
+                        <div class="w-2 h-2 rounded-full bg-oziris-500 typing-dot"></div>
+                        <div class="w-2 h-2 rounded-full bg-oziris-500 typing-dot"></div>
+                        <div class="w-2 h-2 rounded-full bg-oziris-500 typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel wprowadzania -->
+        <div class="absolute bottom-0 w-full bg-gradient-to-t from-oziris-900 via-oziris-900 to-transparent pt-10 pb-4 px-4 md:px-8">
+            <div class="max-w-4xl mx-auto relative group">
+                <div class="absolute -inset-1 bg-gradient-to-r from-oziris-500/20 to-blue-500/20 rounded-xl blur opacity-25 group-focus-within:opacity-75 transition duration-500"></div>
+                <div class="relative bg-gray-800 border border-gray-700 rounded-xl flex items-end shadow-2xl overflow-hidden">
+                    
+                    <button class="p-4 text-gray-400 hover:text-oziris-400 transition-colors" title="Załącz plik / Kontekst n8n">
+                        <i class="ph ph-paperclip text-xl"></i>
+                    </button>
+                    
+                    <textarea id="chatInput" rows="1" placeholder="Napisz do OZIRISa... (Shift+Enter dla nowej linii)" class="flex-1 bg-transparent border-none focus:ring-0 resize-none py-4 text-gray-100 placeholder-gray-500 min-h-[56px] max-h-48 scrollbar-hide"></textarea>
+                    
+                    <button id="sendBtn" class="p-4 text-oziris-500 hover:text-white hover:bg-oziris-500 transition-all m-1 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-oziris-500">
+                        <i class="ph-fill ph-paper-plane-right text-xl"></i>
+                    </button>
+                </div>
+                <div class="text-center mt-2 text-[10px] text-gray-500 font-mono">
+                    System bazowy: N8N AI Agent połączony poprzez Webhook API
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Ustawień N8N -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 glass-panel transition-opacity">
+        <div class="bg-oziris-800 border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
+                <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                    <i class="ph ph-sliders text-oziris-400"></i> Konfiguracja API (N8N)
+                </h3>
+                <button id="closeSettingsBtn" class="text-gray-400 hover:text-white"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">N8N Webhook URL</label>
+                    <input type="text" id="n8nWebhookUrl" placeholder="https://twoj-n8n.com/webhook/oziris-chat" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-oziris-500 focus:ring-1 focus:ring-oziris-500 font-mono text-sm transition-all">
+                    <p class="text-xs text-gray-500 mt-1">Adres, na który aplikacja będzie wysyłać zapytania POST.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Bearer Token / API Key (Opcjonalnie)</label>
+                    <input type="password" id="n8nAuthToken" placeholder="Wprowadź klucz autoryzacji" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-oziris-500 focus:ring-1 focus:ring-oziris-500 font-mono text-sm transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">System Prompt (Bypass)</label>
+                    <textarea id="n8nSystemPrompt" rows="3" placeholder="Zdefiniuj rolę OZIRISa dla n8n (jeśli używasz)..." class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-oziris-500 focus:ring-1 focus:ring-oziris-500 text-sm transition-all resize-none"></textarea>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-700 flex justify-end gap-3 bg-gray-800/50">
+                <button id="cancelSettingsBtn" class="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors">Anuluj</button>
+                <button id="saveSettingsBtn" class="px-4 py-2 text-sm font-medium bg-oziris-500 hover:bg-cyan-600 text-white rounded-lg transition-colors shadow-lg shadow-cyan-500/20">Zapisz konfigurację</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        /**
+         * SZKIELET API - Integracja z N8N Workflow
+         * Klasa odpowiada za wysyłanie payloadu do N8N i odbieranie odpowiedzi z AI.
+         */
+        class N8nIntegration {
+            constructor() {
+                // DOMYŚLNY ADRES WEBHOOKA (Wpisz tu swój adres na sztywno)
+                const DEFAULT_WEBHOOK_URL = 'http://localhost:5678/webhook/53c136fe-3e77-4709-a143-fe82746dd8b6/chat';
+
+                // Domyślne dane, ładowane z localStorage (nadpisują domyślne ustawienia z kodu)
+                this.config = {
+                    webhookUrl: localStorage.getItem('oziris_n8n_url') || DEFAULT_WEBHOOK_URL,
+                    bearerToken: localStorage.getItem('oziris_n8n_token') || '',
+                    systemPrompt: localStorage.getItem('oziris_n8n_prompt') || 'You are OZIRIS, an advanced AI assistant.'
+                };
+            }
+
+            updateConfig(newConfig) {
+                this.config = { ...this.config, ...newConfig };
+                localStorage.setItem('oziris_n8n_url', this.config.webhookUrl);
+                localStorage.setItem('oziris_n8n_token', this.config.bearerToken);
+                localStorage.setItem('oziris_n8n_prompt', this.config.systemPrompt);
+            }
+
+            /**
+             * Główna funkcja wysyłająca zapytanie do N8N.
+             * @param {string} userMessage - Wiadomość użytkownika
+             * @param {string} sessionId - ID obecnej sesji, by N8N wiedziało, z jakim kontekstem pracować (np. w pamięci np. Redis)
+             * @param {Array} chatHistory - (Opcjonalnie) przekazywanie pełnej historii, jeśli N8N nie ma własnej bazy pamięci
+             */
+            async sendMessage(userMessage, sessionId, chatHistory = []) {
+                console.log(`[N8N API] Wywoływanie webhooka dla sesji: ${sessionId}`);
+                
+                // Formatowanie payloadu zgodnego z tym, co N8N zwykle przyjmuje ze swoich Webhook nodes
+                const payload = {
+                    sessionId: sessionId,
+                    action: "sendMessage",
+                    chatInput: userMessage,
+                    metadata: {
+                        timestamp: new Date().toISOString(),
+                        client: "OZIRIS Web Wrapper v1.0",
+                        systemPrompt: this.config.systemPrompt
+                    },
+                    history: chatHistory // W przypadku przekazywania pełnego kontekstu w locie
+                };
+
+                // ---- RZECZYWISTY KOD DO ODKOMENTOWANIA GDY N8N JEST PODPIĘTE ----
+                
+                if (!this.config.webhookUrl) {
+                    throw new Error("Brak skonfigurowanego adresu Webhooka N8N. Przejdź do ustawień.");
+                }
+
+                try {
+                    const headers = { 'Content-Type': 'application/json' };
+                    if (this.config.bearerToken) {
+                        headers['Authorization'] = `Bearer ${this.config.bearerToken}`;
+                    }
+
+                    const response = await fetch(this.config.webhookUrl, {
+                        method: 'POST',
+                        headers: headers,
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (!response.ok) {
+                        throw new Error(`Błąd HTTP: ${response.status}`);
+                    }
+
+                    const data = await response.json();
+                    // Oczekiwana struktura z N8N: { "output": "Odpowiedź AI", "toolsUsed": [...] }
+                    return {
+                        text: data.output || data.response || data.text || "Brak treści w odpowiedzi N8N.",
+                        metadata: data.metadata || {}
+                    };
+                } catch (error) {
+                    console.error("[N8N API] Błąd komunikacji:", error);
+                    throw error;
+                }
+                
+                // ---------------------------------------------------------------
+
+                // ---- MOCK (Symulacja backendu do celów demonstracyjnych interfejsu) ----
+                return new Promise((resolve) => {
+                    setTimeout(() => {
+                        let mockResponse = `Analiza komunikatu: "${userMessage}".\n\nPrzetwarzanie z wykorzystaniem protokołów OZIRIS zakończone. Połączenie z N8N jest symulowane (Tryb Mock). Skonfiguruj Webhook w ustawieniach i odkomentuj kod \`fetch\` w strukturze aplikacji, aby włączyć rzeczywiste wywołania do API.`;
+                        
+                        if (userMessage.toLowerCase().includes("raport")) {
+                            mockResponse = "Pobieram dane z węzłów N8N... Generowanie raportu zakończone. Brak krytycznych błędów w systemie głównym.";
+                        }
+                        
+                        resolve({
+                            text: mockResponse,
+                            metadata: { simulated: true, latency: 1200 }
+                        });
+                    }, 1500 + Math.random() * 1000); // 1.5 - 2.5s symulowane opóźnienie
+                });
+            }
+        }
+
+        /**
+         * STAN APLIKACJI - Lokalna pamięć dla sesji
+         */
+        const AppState = {
+            sessions: [], // Tablica obiektów: { id, title, updatedAt, messages: [{role, text, timestamp}] }
+            currentSessionId: null,
+
+            init() {
+                const saved = localStorage.getItem('oziris_sessions');
+                if (saved) {
+                    try {
+                        this.sessions = JSON.parse(saved);
+                    } catch(e) { console.error("Błąd ładowania sesji", e); }
+                }
+
+                if (this.sessions.length === 0) {
+                    this.createNewSession();
+                } else {
+                    // Sortuj wg najnowszych i wybierz pierwszą
+                    this.sessions.sort((a, b) => b.updatedAt - a.updatedAt);
+                    this.currentSessionId = this.sessions[0].id;
+                }
+            },
+
+            save() {
+                localStorage.setItem('oziris_sessions', JSON.stringify(this.sessions));
+            },
+
+            createNewSession() {
+                const newId = 'session_' + Date.now();
+                const session = {
+                    id: newId,
+                    title: 'Nowa Konwersacja',
+                    updatedAt: Date.now(),
+                    messages: []
+                };
+                this.sessions.unshift(session);
+                this.currentSessionId = newId;
+                this.save();
+                return newId;
+            },
+
+            getCurrentSession() {
+                return this.sessions.find(s => s.id === this.currentSessionId);
+            },
+
+            addMessage(role, text) {
+                const session = this.getCurrentSession();
+                if (session) {
+                    session.messages.push({ role, text, timestamp: Date.now() });
+                    session.updatedAt = Date.now();
+                    
+                    // Automatyczne generowanie tytułu, jeśli to pierwsza wiadomość użytkownika
+                    if (session.messages.length === 1 || (session.messages.length === 2 && session.title === 'Nowa Konwersacja')) {
+                        const firstUserMsg = session.messages.find(m => m.role === 'user');
+                        if (firstUserMsg) {
+                            session.title = firstUserMsg.text.substring(0, 30) + (firstUserMsg.text.length > 30 ? '...' : '');
+                        }
+                    }
+                    this.save();
+                }
+            },
+
+            clearCurrentSession() {
+                const session = this.getCurrentSession();
+                if (session) {
+                    session.messages = [];
+                    session.title = 'Nowa Konwersacja';
+                    session.updatedAt = Date.now();
+                    this.save();
+                }
+            },
+            
+            deleteSession(id) {
+                this.sessions = this.sessions.filter(s => s.id !== id);
+                if (this.sessions.length === 0) {
+                    this.createNewSession();
+                } else if (this.currentSessionId === id) {
+                    this.currentSessionId = this.sessions[0].id;
+                }
+                this.save();
+            }
+        };
+
+        /**
+         * KONTROLER UI
+         */
+        const UI = {
+            els: {
+                sidebar: document.getElementById('sidebar'),
+                mobileOverlay: document.getElementById('mobileOverlay'),
+                openSidebarBtn: document.getElementById('openSidebarBtn'),
+                closeSidebarBtn: document.getElementById('closeSidebarBtn'),
+                sessionsList: document.getElementById('sessionsList'),
+                newChatBtn: document.getElementById('newChatBtn'),
+                chatArea: document.getElementById('chatArea'),
+                emptyState: document.getElementById('emptyState'),
+                messagesContainer: document.getElementById('messagesContainer'),
+                chatInput: document.getElementById('chatInput'),
+                sendBtn: document.getElementById('sendBtn'),
+                currentChatTitle: document.getElementById('currentChatTitle'),
+                typingIndicator: document.getElementById('typingIndicator'),
+                clearChatBtn: document.getElementById('clearChatBtn'),
+                
+                // Ustawienia
+                settingsBtn: document.getElementById('settingsBtn'),
+                settingsModal: document.getElementById('settingsModal'),
+                closeSettingsBtn: document.getElementById('closeSettingsBtn'),
+                cancelSettingsBtn: document.getElementById('cancelSettingsBtn'),
+                saveSettingsBtn: document.getElementById('saveSettingsBtn'),
+                n8nWebhookUrl: document.getElementById('n8nWebhookUrl'),
+                n8nAuthToken: document.getElementById('n8nAuthToken'),
+                n8nSystemPrompt: document.getElementById('n8nSystemPrompt'),
+            },
+
+            api: new N8nIntegration(),
+            isGenerating: false,
+
+            init() {
+                AppState.init();
+                this.bindEvents();
+                this.renderSidebar();
+                this.renderCurrentChat();
+            },
+
+            bindEvents() {
+                // Pasek boczny (Mobile)
+                this.els.openSidebarBtn.addEventListener('click', () => this.toggleSidebar(true));
+                this.els.closeSidebarBtn.addEventListener('click', () => this.toggleSidebar(false));
+                this.els.mobileOverlay.addEventListener('click', () => this.toggleSidebar(false));
+
+                // Czat
+                this.els.newChatBtn.addEventListener('click', () => {
+                    AppState.createNewSession();
+                    this.renderSidebar();
+                    this.renderCurrentChat();
+                    if(window.innerWidth < 768) this.toggleSidebar(false);
+                });
+
+                this.els.clearChatBtn.addEventListener('click', () => {
+                    if(confirm("Czy na pewno chcesz wyczyścić tę konwersację?")) {
+                        AppState.clearCurrentSession();
+                        this.renderSidebar();
+                        this.renderCurrentChat();
+                    }
+                });
+
+                // Input Box auto-resize i wysyłanie
+                this.els.chatInput.addEventListener('input', () => {
+                    this.els.chatInput.style.height = 'auto';
+                    this.els.chatInput.style.height = (this.els.chatInput.scrollHeight) + 'px';
+                    this.els.sendBtn.disabled = this.els.chatInput.value.trim() === '';
+                });
+
+                this.els.chatInput.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.handleSendMessage();
+                    }
+                });
+
+                this.els.sendBtn.addEventListener('click', () => this.handleSendMessage());
+
+                // Sugestie klikalne
+                document.querySelectorAll('.suggestion-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        this.els.chatInput.value = e.target.innerText;
+                        this.handleSendMessage();
+                    });
+                });
+
+                // Modal Ustawień
+                const openSettings = () => {
+                    this.els.n8nWebhookUrl.value = this.api.config.webhookUrl;
+                    this.els.n8nAuthToken.value = this.api.config.bearerToken;
+                    this.els.n8nSystemPrompt.value = this.api.config.systemPrompt;
+                    this.els.settingsModal.classList.remove('hidden');
+                };
+                const closeSettings = () => this.els.settingsModal.classList.add('hidden');
+
+                this.els.settingsBtn.addEventListener('click', openSettings);
+                this.els.closeSettingsBtn.addEventListener('click', closeSettings);
+                this.els.cancelSettingsBtn.addEventListener('click', closeSettings);
+                
+                this.els.saveSettingsBtn.addEventListener('click', () => {
+                    this.api.updateConfig({
+                        webhookUrl: this.els.n8nWebhookUrl.value,
+                        bearerToken: this.els.n8nAuthToken.value,
+                        systemPrompt: this.els.n8nSystemPrompt.value
+                    });
+                    closeSettings();
+                });
+            },
+
+            toggleSidebar(show) {
+                if (show) {
+                    this.els.sidebar.classList.remove('-translate-x-full');
+                    this.els.mobileOverlay.classList.remove('hidden');
+                } else {
+                    this.els.sidebar.classList.add('-translate-x-full');
+                    this.els.mobileOverlay.classList.add('hidden');
+                }
+            },
+
+            renderSidebar() {
+                this.els.sessionsList.innerHTML = '';
+                
+                // Grupowanie dzisiaj / wcześniej można dodać, tutaj uproszczona lista
+                AppState.sessions.forEach(session => {
+                    const isActive = session.id === AppState.currentSessionId;
+                    
+                    const btn = document.createElement('div');
+                    btn.className = `group flex items-center justify-between p-3 rounded-lg cursor-pointer transition-colors ${isActive ? 'bg-gray-800 border-l-2 border-oziris-500' : 'hover:bg-gray-800/60 border-l-2 border-transparent'}`;
+                    
+                    const contentDiv = document.createElement('div');
+                    contentDiv.className = "flex items-center gap-3 overflow-hidden flex-1";
+                    contentDiv.innerHTML = `
+                        <i class="ph ph-chat-teardrop-text text-gray-400 ${isActive ? 'text-oziris-400' : ''}"></i>
+                        <span class="text-sm font-medium truncate ${isActive ? 'text-white' : 'text-gray-400 group-hover:text-gray-200'}">${session.title}</span>
+                    `;
+                    contentDiv.onclick = () => {
+                        AppState.currentSessionId = session.id;
+                        this.renderSidebar();
+                        this.renderCurrentChat();
+                        if(window.innerWidth < 768) this.toggleSidebar(false);
+                    };
+
+                    const deleteBtn = document.createElement('button');
+                    deleteBtn.className = "text-gray-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity px-1";
+                    deleteBtn.innerHTML = '<i class="ph ph-trash"></i>';
+                    deleteBtn.onclick = (e) => {
+                        e.stopPropagation();
+                        if(confirm("Usunąć konwersację?")) {
+                            AppState.deleteSession(session.id);
+                            this.renderSidebar();
+                            this.renderCurrentChat();
+                        }
+                    };
+
+                    btn.appendChild(contentDiv);
+                    btn.appendChild(deleteBtn);
+                    this.els.sessionsList.appendChild(btn);
+                });
+            },
+
+            renderCurrentChat() {
+                const session = AppState.getCurrentSession();
+                if (!session) return;
+
+                this.els.currentChatTitle.textContent = session.title;
+                this.els.messagesContainer.innerHTML = '';
+
+                if (session.messages.length === 0) {
+                    this.els.emptyState.classList.remove('hidden');
+                    this.els.messagesContainer.classList.add('hidden');
+                } else {
+                    this.els.emptyState.classList.add('hidden');
+                    this.els.messagesContainer.classList.remove('hidden');
+                    
+                    session.messages.forEach(msg => {
+                        this.appendMessageElement(msg.role, msg.text);
+                    });
+                    this.scrollToBottom();
+                }
+            },
+
+            appendMessageElement(role, text) {
+                const msgDiv = document.createElement('div');
+                const isUser = role === 'user';
+                
+                msgDiv.className = `flex items-end gap-3 max-w-[85%] sm:max-w-3xl ${isUser ? 'ml-auto flex-row-reverse' : ''}`;
+                
+                // Avatar
+                const avatar = document.createElement('div');
+                avatar.className = `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border ${isUser ? 'bg-blue-600 border-blue-400/30' : 'bg-gray-800 border-oziris-500/30'}`;
+                avatar.innerHTML = isUser ? '<i class="ph-fill ph-user text-white text-sm"></i>' : '<i class="ph-fill ph-hexagon text-oziris-400 text-sm"></i>';
+
+                // Dymek wiadomości (Parsowanie prostego Markdown - pogrubienia i nowe linie)
+                const bubble = document.createElement('div');
+                let formattedText = text.replace(/\n/g, '<br/>')
+                                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                                        .replace(/`(.*?)`/g, '<code class="bg-gray-900 px-1 py-0.5 rounded text-oziris-400 font-mono text-sm">$1</code>');
+
+                bubble.className = `p-4 rounded-2xl ${isUser ? 'bg-oziris-500 text-white rounded-br-sm shadow-[0_4px_15px_rgba(6,182,212,0.2)]' : 'bg-gray-800 border border-gray-700 text-gray-100 rounded-bl-sm'}`;
+                bubble.innerHTML = `<div class="leading-relaxed text-sm md:text-base">${formattedText}</div>`;
+
+                msgDiv.appendChild(avatar);
+                msgDiv.appendChild(bubble);
+                this.els.messagesContainer.appendChild(msgDiv);
+            },
+
+            scrollToBottom() {
+                // Drobne opóźnienie aby upewnić się, że DOM wyrenderował wymiary
+                setTimeout(() => {
+                    this.els.chatArea.scrollTop = this.els.chatArea.scrollHeight;
+                }, 50);
+            },
+
+            async handleSendMessage() {
+                if (this.isGenerating) return;
+                
+                const text = this.els.chatInput.value.trim();
+                if (!text) return;
+
+                // 1. Zaktualizuj UI (Wiadomość użytkownika)
+                this.els.chatInput.value = '';
+                this.els.chatInput.style.height = 'auto'; // Reset height
+                this.els.sendBtn.disabled = true;
+                
+                // Ukryj empty state jeśli istnieje
+                if (!this.els.emptyState.classList.contains('hidden')) {
+                    this.els.emptyState.classList.add('hidden');
+                    this.els.messagesContainer.classList.remove('hidden');
+                }
+
+                AppState.addMessage('user', text);
+                this.appendMessageElement('user', text);
+                this.scrollToBottom();
+                this.renderSidebar(); // Aktualizacja tytułu jeśli to pierwsza wiadomość
+
+                // 2. Aktywuj wskaźnik pisania
+                this.isGenerating = true;
+                this.els.messagesContainer.appendChild(this.els.typingIndicator);
+                this.els.typingIndicator.classList.remove('hidden');
+                this.scrollToBottom();
+
+                try {
+                    // 3. Wywołanie klasy odpowiedzialnej za N8N
+                    const session = AppState.getCurrentSession();
+                    // Zbieramy historię w prostym formacie dla N8N jeśli to potrzebne (ostatnie 10 wiadomości)
+                    const historyForApi = session.messages.slice(-10).map(m => ({ role: m.role, content: m.text }));
+
+                    const aiResponse = await this.api.sendMessage(text, session.id, historyForApi);
+                    
+                    // 4. Obsługa odpowiedzi
+                    this.els.typingIndicator.classList.add('hidden'); // Ukryj wskaźnik
+                    AppState.addMessage('ai', aiResponse.text);
+                    this.appendMessageElement('ai', aiResponse.text);
+
+                } catch (error) {
+                    console.error("Błąd podczas komunikacji z N8N:", error);
+                    this.els.typingIndicator.classList.add('hidden');
+                    const errorMsg = "⚠️ **Błąd Połączenia z Systemem Bazowym (N8N).**\nProszę sprawdzić konfigurację Webhooka lub status serwera N8N.\n\n`Treść błędu: " + error.message + "`";
+                    AppState.addMessage('ai', errorMsg);
+                    this.appendMessageElement('ai', errorMsg);
+                } finally {
+                    this.isGenerating = false;
+                    this.scrollToBottom();
+                }
+            }
+        };
+
+        // Inicjalizacja po załadowaniu drzewa DOM
+        document.addEventListener('DOMContentLoaded', () => {
+            UI.init();
+        });
+    </script>
+</body>
+</html>
