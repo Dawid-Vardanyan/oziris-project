@@ -70,6 +70,22 @@
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
         }
+
+        .drag-drop-active #dropZoneOverlay {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .drag-drop-active #chatComposer {
+            border-color: #06B6D4;
+            box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.45), 0 0 30px rgba(6, 182, 212, 0.18);
+        }
+
+        .toast-visible {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            pointer-events: auto !important;
+        }
     </style>
 </head>
 <body class="h-screen w-full flex overflow-hidden selection:bg-oziris-500 selection:text-white">
@@ -112,7 +128,14 @@
     <div id="mobileOverlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden glass-panel"></div>
 
     <!-- Główny obszar aplikacji -->
-    <main class="flex-1 flex flex-col bg-oziris-900 relative h-full w-full min-w-0">
+    <main id="appRoot" class="flex-1 flex flex-col bg-oziris-900 relative h-full w-full min-w-0">
+        <div id="dropZoneOverlay" class="pointer-events-none absolute inset-4 z-40 flex items-center justify-center rounded-3xl border-2 border-dashed border-oziris-500 bg-oziris-900/80 opacity-0 transition-opacity duration-200 backdrop-blur-sm">
+            <div class="rounded-2xl border border-gray-700 bg-gray-800/90 px-6 py-5 text-center shadow-2xl">
+                <i class="ph ph-upload-simple text-4xl text-oziris-400"></i>
+                <p class="mt-2 font-semibold text-white">Upuść pliki tekstowe tutaj</p>
+                <p class="mt-1 text-xs text-gray-400">TXT, MD, JSON, CSV, LOG, XML, YAML</p>
+            </div>
+        </div>
         
         <!-- Nagłówek czatu -->
         <header class="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-gray-800 glass-panel z-10 flex-shrink-0">
@@ -175,23 +198,23 @@
             <div class="max-w-4xl mx-auto relative group">
                 <div class="pointer-events-none absolute -inset-1 bg-gradient-to-r from-oziris-500/20 to-blue-500/20 rounded-xl blur opacity-25 group-focus-within:opacity-75 transition duration-500"></div>
                 <div id="selectedFilePreview" class="hidden mb-2 rounded-xl border border-gray-700 bg-gray-800/80 px-3 py-2 text-sm text-gray-300">
-                    <div class="flex items-center justify-between gap-3">
-                        <div class="flex min-w-0 items-center gap-2">
-                            <i class="ph ph-file-text text-oziris-400 text-lg"></i>
-                            <div class="min-w-0">
-                                <div id="selectedFileName" class="truncate font-medium text-gray-100"></div>
-                                <div id="selectedFileMeta" class="text-xs text-gray-500"></div>
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex min-w-0 flex-1 items-start gap-2">
+                            <i class="ph ph-files text-oziris-400 text-lg mt-0.5"></i>
+                            <div class="min-w-0 flex-1">
+                                <div id="selectedFileName" class="space-y-1 font-medium text-gray-100"></div>
+                                <div id="selectedFileMeta" class="mt-1 text-xs text-gray-500"></div>
                             </div>
                         </div>
-                        <button type="button" id="removeFileBtn" class="flex-shrink-0 rounded-lg p-1 text-gray-500 hover:bg-gray-700 hover:text-red-400 transition-colors" title="Usuń załącznik">
+                        <button type="button" id="removeFileBtn" class="flex-shrink-0 rounded-lg p-1 text-gray-500 hover:bg-gray-700 hover:text-red-400 transition-colors" title="Usuń wszystkie załączniki">
                             <i class="ph ph-x text-lg"></i>
                         </button>
                     </div>
                 </div>
 
-                <div class="relative bg-gray-800 border border-gray-700 rounded-xl flex items-end shadow-2xl overflow-hidden">
+                <div id="chatComposer" class="relative bg-gray-800 border border-gray-700 rounded-xl flex items-end shadow-2xl overflow-hidden transition-all duration-200">
                     
-                    <input id="fileInput" type="file" class="hidden" accept=".txt,.md,.markdown,.json,.csv,.log,.xml,.yaml,.yml,text/*,application/json" aria-label="Wybierz plik tekstowy do wysłania">
+                    <input id="fileInput" type="file" class="hidden" multiple accept=".txt,.md,.markdown,.json,.csv,.log,.xml,.yaml,.yml,text/*,application/json" aria-label="Wybierz pliki tekstowe do wysłania">
 
                     <button type="button" id="attachFileBtn" class="p-4 text-gray-400 hover:text-oziris-400 transition-colors" title="Załącz plik tekstowy / Kontekst n8n">
                         <i class="ph ph-paperclip text-xl"></i>
@@ -209,6 +232,13 @@
             </div>
         </div>
     </main>
+
+    <div id="toast" class="fixed right-4 top-4 z-[60] max-w-sm translate-y-[-12px] rounded-xl border border-red-500/40 bg-red-950/90 px-4 py-3 text-sm text-red-100 opacity-0 shadow-2xl backdrop-blur transition-all duration-200 pointer-events-none">
+        <div class="flex items-start gap-2">
+            <i class="ph ph-warning-circle mt-0.5 text-lg text-red-300"></i>
+            <div id="toastMessage">Nieobsługiwany plik.</div>
+        </div>
+    </div>
 
     <!-- Modal Ustawień N8N -->
     <div id="settingsModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 glass-panel transition-opacity">
@@ -432,6 +462,7 @@
          */
         const UI = {
             els: {
+                appRoot: document.getElementById('appRoot'),
                 sidebar: document.getElementById('sidebar'),
                 mobileOverlay: document.getElementById('mobileOverlay'),
                 openSidebarBtn: document.getElementById('openSidebarBtn'),
@@ -443,12 +474,15 @@
                 messagesContainer: document.getElementById('messagesContainer'),
                 chatInput: document.getElementById('chatInput'),
                 sendBtn: document.getElementById('sendBtn'),
+                chatComposer: document.getElementById('chatComposer'),
                 attachFileBtn: document.getElementById('attachFileBtn'),
                 fileInput: document.getElementById('fileInput'),
                 selectedFilePreview: document.getElementById('selectedFilePreview'),
                 selectedFileName: document.getElementById('selectedFileName'),
                 selectedFileMeta: document.getElementById('selectedFileMeta'),
                 removeFileBtn: document.getElementById('removeFileBtn'),
+                toast: document.getElementById('toast'),
+                toastMessage: document.getElementById('toastMessage'),
                 currentChatTitle: document.getElementById('currentChatTitle'),
                 typingIndicator: document.getElementById('typingIndicator'),
                 clearChatBtn: document.getElementById('clearChatBtn'),
@@ -468,6 +502,9 @@
             isGenerating: false,
             selectedAttachedFiles: [],
             maxTextFileSizeBytes: 1024 * 1024,
+            allowedFileExtensions: ['txt', 'md', 'markdown', 'json', 'csv', 'log', 'xml', 'yaml', 'yml'],
+            dragDepth: 0,
+            toastTimeoutId: null,
 
             init() {
                 AppState.init();
@@ -515,6 +552,8 @@
                     });
                     this.els.fileInput.addEventListener('change', (e) => this.handleFileSelect(e));
                 }
+
+                this.bindDragAndDropEvents();
 
                 this.els.removeFileBtn.addEventListener('click', (e) => {
                     e.preventDefault();
@@ -692,53 +731,145 @@
                 this.els.sendBtn.disabled = this.isGenerating || (!hasText && !hasFile);
             },
 
+            bindDragAndDropEvents() {
+                const preventDefaults = (event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                };
+
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    this.els.appRoot.addEventListener(eventName, preventDefaults, false);
+                });
+
+                this.els.appRoot.addEventListener('dragenter', (event) => {
+                    if (!this.hasDraggedFiles(event)) return;
+                    this.dragDepth += 1;
+                    this.els.appRoot.classList.add('drag-drop-active');
+                });
+
+                this.els.appRoot.addEventListener('dragover', (event) => {
+                    if (!this.hasDraggedFiles(event)) return;
+                    event.dataTransfer.dropEffect = 'copy';
+                });
+
+                this.els.appRoot.addEventListener('dragleave', (event) => {
+                    if (!this.hasDraggedFiles(event)) return;
+                    this.dragDepth = Math.max(0, this.dragDepth - 1);
+                    if (this.dragDepth === 0) {
+                        this.els.appRoot.classList.remove('drag-drop-active');
+                    }
+                });
+
+                this.els.appRoot.addEventListener('drop', async (event) => {
+                    this.dragDepth = 0;
+                    this.els.appRoot.classList.remove('drag-drop-active');
+                    const files = Array.from(event.dataTransfer?.files || []);
+                    if (files.length === 0) return;
+                    await this.addFiles(files);
+                });
+            },
+
+            hasDraggedFiles(event) {
+                return Array.from(event.dataTransfer?.types || []).includes('Files');
+            },
+
+            showToast(message) {
+                this.els.toastMessage.textContent = message;
+                this.els.toast.classList.add('toast-visible');
+                clearTimeout(this.toastTimeoutId);
+                this.toastTimeoutId = setTimeout(() => {
+                    this.els.toast.classList.remove('toast-visible');
+                }, 3600);
+            },
+
             clearSelectedFile() {
                 this.selectedAttachedFiles = [];
                 this.els.fileInput.value = '';
-                this.els.selectedFilePreview.classList.add('hidden');
-                this.els.selectedFileName.textContent = '';
-                this.els.selectedFileMeta.textContent = '';
+                this.renderSelectedFilesPreview();
                 this.updateSendButtonState();
             },
 
-            async handleFileSelect(event) {
-                const file = event.target.files?.[0];
-                if (!file) return;
-
-                const allowedExtensions = ['txt', 'md', 'markdown', 'json', 'csv', 'log', 'xml', 'yaml', 'yml'];
-                const extension = file.name.split('.').pop()?.toLowerCase() || '';
-                const isTextMime = file.type.startsWith('text/') || file.type === 'application/json' || file.type === '';
-
-                if (!allowedExtensions.includes(extension) && !isTextMime) {
-                    alert('Na razie obsługiwane są tylko pliki tekstowe: TXT, MD, JSON, CSV, LOG, XML, YAML. Tak, PDF też kiedyś, spokojnie, cywilizacja ma etapy.');
-                    this.clearSelectedFile();
+            renderSelectedFilesPreview() {
+                if (this.selectedAttachedFiles.length === 0) {
+                    this.els.selectedFilePreview.classList.add('hidden');
+                    this.els.selectedFileName.innerHTML = '';
+                    this.els.selectedFileMeta.textContent = '';
                     return;
                 }
 
-                if (file.size > this.maxTextFileSizeBytes) {
-                    alert(`Plik jest za duży. Aktualny limit to ${this.formatBytes(this.maxTextFileSizeBytes)} dla pliku tekstowego.`);
-                    this.clearSelectedFile();
+                this.els.selectedFileName.innerHTML = this.selectedAttachedFiles.map(file => `
+                    <div class="flex min-w-0 items-center gap-2 rounded-lg bg-gray-900/70 px-2 py-1">
+                        <i class="ph ph-file-text text-oziris-400"></i>
+                        <span class="truncate">${this.escapeHtml(file.name)}</span>
+                        <span class="ml-auto flex-shrink-0 text-xs font-normal text-gray-500">${this.formatBytes(file.size)}</span>
+                    </div>
+                `).join('');
+
+                const totalSize = this.selectedAttachedFiles.reduce((sum, file) => sum + file.size, 0);
+                this.els.selectedFileMeta.textContent = `${this.selectedAttachedFiles.length} plik(ów) • razem ${this.formatBytes(totalSize)}`;
+                this.els.selectedFilePreview.classList.remove('hidden');
+            },
+
+            isSupportedTextFile(file) {
+                const extension = file.name.split('.').pop()?.toLowerCase() || '';
+                const isTextMime = file.type.startsWith('text/') || file.type === 'application/json' || file.type === '';
+                return this.allowedFileExtensions.includes(extension) || isTextMime;
+            },
+
+            async handleFileSelect(event) {
+                const files = Array.from(event.target.files || []);
+                if (files.length === 0) return;
+                await this.addFiles(files);
+                this.els.fileInput.value = '';
+            },
+
+            async addFiles(files) {
+                const rejected = [];
+                const tooLarge = [];
+                const validFiles = [];
+
+                files.forEach(file => {
+                    if (!this.isSupportedTextFile(file)) {
+                        rejected.push(file.name);
+                        return;
+                    }
+                    if (file.size > this.maxTextFileSizeBytes) {
+                        tooLarge.push(file.name);
+                        return;
+                    }
+                    validFiles.push(file);
+                });
+
+                if (rejected.length > 0) {
+                    this.showToast(`Nieobsługiwany typ pliku: ${rejected.slice(0, 3).join(', ')}${rejected.length > 3 ? '…' : ''}. Obsługiwane: TXT, MD, JSON, CSV, LOG, XML, YAML.`);
+                }
+
+                if (tooLarge.length > 0) {
+                    this.showToast(`Plik za duży: ${tooLarge.slice(0, 3).join(', ')}${tooLarge.length > 3 ? '…' : ''}. Limit: ${this.formatBytes(this.maxTextFileSizeBytes)} na plik.`);
+                }
+
+                if (validFiles.length === 0) {
+                    this.updateSendButtonState();
                     return;
                 }
 
                 try {
-                    const content = await file.text();
-                    this.selectedAttachedFiles = [{
+                    const readFiles = await Promise.all(validFiles.map(async file => ({
                         name: file.name,
                         type: file.type || 'text/plain',
                         size: file.size,
                         lastModified: file.lastModified,
-                        content
-                    }];
+                        content: await file.text()
+                    })));
 
-                    this.els.selectedFileName.textContent = file.name;
-                    this.els.selectedFileMeta.textContent = `${this.formatBytes(file.size)} • ${file.type || 'text/plain'}`;
-                    this.els.selectedFilePreview.classList.remove('hidden');
+                    this.selectedAttachedFiles = [...this.selectedAttachedFiles, ...readFiles];
+                    this.renderSelectedFilesPreview();
                     this.updateSendButtonState();
                 } catch (error) {
                     console.error('Nie udało się odczytać pliku:', error);
-                    alert('Nie udało się odczytać pliku po stronie przeglądarki. Magiczny świat plików znowu wygrał.');
-                    this.clearSelectedFile();
+                    this.showToast('Nie udało się odczytać jednego z plików po stronie przeglądarki. Pliki, cudowny wynalazek chaosu.');
+                    this.renderSelectedFilesPreview();
+                    this.updateSendButtonState();
                 }
             },
 
@@ -768,7 +899,7 @@
                     this.els.messagesContainer.classList.remove('hidden');
                 }
 
-                const displayText = text || '[Załączono plik do analizy]';
+                const displayText = text || (attachedFiles.length === 1 ? '[Załączono plik do analizy]' : `[Załączono ${attachedFiles.length} pliki do analizy]`);
                 AppState.addMessage('user', displayText, attachedFiles.map(({ content, ...fileMeta }) => fileMeta));
                 this.appendMessageElement('user', displayText, attachedFiles.map(({ content, ...fileMeta }) => fileMeta));
                 this.scrollToBottom();
