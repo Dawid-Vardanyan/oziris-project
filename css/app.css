@@ -104,8 +104,8 @@ header {
 }
 
 /* Hard override for message widths.
-   Rows now always occupy the chat width. The bubble decides its own size.
-   This prevents user bubbles from collapsing into a tragic cyan skyscraper. */
+   Rows always use the full chat width. Bubbles decide their own width.
+   User messages are aligned by justify-content, not flex-row-reverse, because flexbox already had enough chances to embarrass itself. */
 .chat-message {
     box-sizing: border-box;
     display: flex;
@@ -113,52 +113,60 @@ header {
     min-width: 0 !important;
     max-width: 100% !important;
     overflow: visible;
+    align-items: flex-end;
 }
 
 .chat-message-ai {
-    width: min(100%, 1280px) !important;
-    max-width: calc(100% - 1rem) !important;
+    justify-content: flex-start !important;
     margin-right: auto !important;
     margin-left: 0 !important;
-    justify-content: flex-start;
 }
 
 .chat-message-user {
-    width: 100% !important;
-    max-width: 100% !important;
+    justify-content: flex-end !important;
     margin-left: 0 !important;
     margin-right: 0 !important;
-    justify-content: flex-start;
 }
 
 .chat-avatar {
     flex: 0 0 2rem;
+    width: 2rem;
+    height: 2rem;
 }
 
 .chat-bubble {
     box-sizing: border-box;
     min-width: 0 !important;
-    max-width: 100% !important;
     overflow: hidden;
 }
 
 .chat-message-ai .chat-bubble {
-    flex: 1 1 auto;
-    width: 100% !important;
+    flex: 0 1 auto;
+    width: min(1280px, calc(100% - 3.25rem)) !important;
+    max-width: calc(100% - 3.25rem) !important;
 }
 
 .chat-message-user .chat-bubble {
     flex: 0 1 auto;
-    width: fit-content !important;
+    min-width: 3rem !important;
     max-width: min(920px, calc(100% - 3.25rem)) !important;
+}
+
+.chat-message-user .chat-bubble-user-short {
+    width: max-content !important;
+    max-width: min(620px, calc(100% - 3.25rem)) !important;
+}
+
+.chat-message-user .chat-bubble-user-long {
+    width: min(920px, calc(100% - 3.25rem)) !important;
 }
 
 .chat-message-user .message-content {
     width: auto !important;
     max-width: 100% !important;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: normal;
+    white-space: normal !important;
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
 }
 
 .chat-bubble .message-content {
