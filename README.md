@@ -40,3 +40,7 @@ This build contains stronger chat containment rules. Wide AI content such as Mar
 
 ## Layout note
 AI messages are allowed to expand up to `72rem` on wide screens while still shrinking to the current chat pane width on narrow screens. User messages stay slightly narrower for readability.
+
+## Latest layout fix
+
+AI messages are now allowed to expand across the available chat width up to 1280px, while user messages stay narrower. The CSS uses hard overrides in `css/app.css` so old Tailwind utility limits and browser cache remnants cannot keep the previous narrow 48rem cap alive.
