@@ -15,7 +15,9 @@
 
     width: auto !important;
     min-width: 0 !important;
-    max-width: min(80%, 48rem) !important;
+
+    /* Wider user bubble */
+    max-width: min(88%, 56rem) !important;
 
     margin-left: auto !important;
     margin-right: 0 !important;
@@ -45,4 +47,35 @@
 .chat-message-user .message-content p {
     display: inline !important;
     margin: 0 !important;
+}
+
+/* Visible text selection */
+::selection {
+    background: rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+}
+
+::-moz-selection {
+    background: rgba(255, 255, 255, 0.28);
+    color: #ffffff;
+}
+
+.chat-message-user ::selection {
+    background: rgba(11, 15, 25, 0.45);
+    color: #ffffff;
+}
+
+.chat-message-user ::-moz-selection {
+    background: rgba(11, 15, 25, 0.45);
+    color: #ffffff;
+}
+
+.chat-message-ai ::selection {
+    background: rgba(6, 182, 212, 0.35);
+    color: #ffffff;
+}
+
+.chat-message-ai ::-moz-selection {
+    background: rgba(6, 182, 212, 0.35);
+    color: #ffffff;
 }
