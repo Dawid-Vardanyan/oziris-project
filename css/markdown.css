@@ -1,6 +1,6 @@
 /* Markdown / AI-response rendering */
 .message-content {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     word-break: normal;
 }
 
@@ -70,7 +70,7 @@
     padding: 0;
     color: #E5E7EB;
     white-space: pre-wrap;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
 
 .message-content blockquote {
@@ -115,7 +115,7 @@
     padding: 0.7rem 0.8rem;
     vertical-align: top;
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     word-break: break-word;
 }
 
@@ -141,7 +141,7 @@
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.92rem;
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
 
 .message-content .math-arrow {
@@ -163,7 +163,6 @@
     line-height: 1.05;
     color: #22D3EE;
 }
-
 
 @media (max-width: 720px) {
     .message-content table,
@@ -217,7 +216,7 @@
 .message-content h2,
 .message-content h3,
 .message-content h4 {
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     word-break: normal;
 }
 
@@ -239,7 +238,7 @@
 .message-content td {
     min-width: 0;
     max-width: 100%;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     word-break: break-word;
 }
 
@@ -257,7 +256,7 @@
     min-width: 0;
     max-width: 100%;
     white-space: pre-wrap;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     word-break: break-word;
 }
 
@@ -270,7 +269,7 @@
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
     white-space: normal;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
     word-break: break-word;
 }
 
@@ -286,7 +285,7 @@
 .message-content .math-block .math-token {
     min-width: 0;
     max-width: 100%;
-    overflow-wrap: anywhere;
+    overflow-wrap: break-word;
 }
 
 @container (max-width: 720px) {
@@ -378,7 +377,7 @@
     }
 }
 
-/* Syntax highlighting for fenced code blocks. AI should ideally use ```sql, ```js, etc. */
+/* Syntax highlighting for fenced code blocks. */
 .message-content .code-block {
     margin: 0.95rem 0;
     max-width: 100%;

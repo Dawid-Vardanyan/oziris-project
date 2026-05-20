@@ -53,9 +53,7 @@ body {
     pointer-events: auto !important;
 }
 
-/* Responsive chat layout fixes
-   The app can be wide, narrow, or embedded in a weird browser pane because apparently layouts enjoy drama.
-   These rules make AI bubbles use available room on large screens while still shrinking safely on small screens. */
+/* Responsive chat layout fixes */
 *, *::before, *::after {
     box-sizing: border-box;
 }
@@ -103,9 +101,7 @@ header {
     white-space: nowrap;
 }
 
-/* Hard override for message widths.
-   Rows always use the full chat width. Bubbles decide their own width.
-   User messages are aligned by justify-content, not flex-row-reverse, because flexbox already had enough chances to embarrass itself. */
+/* Hard override for message widths. */
 .chat-message {
     box-sizing: border-box;
     display: flex;
@@ -202,9 +198,7 @@ header {
     }
 }
 
-/* FINAL message layout repair: use CSS Grid instead of flex.
-   This prevents user bubbles from collapsing into one-character columns while keeping
-   AI bubbles wide and responsive. */
+/* FINAL message layout repair: use CSS Grid instead of flex. */
 #messagesContainer {
     display: flex;
     flex-direction: column;
@@ -250,7 +244,6 @@ header {
     justify-self: end;
     width: fit-content !important;
     max-width: min(920px, 100%) !important;
-    min-width: 0 !important;
     white-space: normal !important;
     overflow: hidden !important;
 }
@@ -258,7 +251,7 @@ header {
 .chat-message-user .message-content,
 .chat-message-user .message-content * {
     white-space: normal !important;
-    overflow-wrap: anywhere !important;
+    overflow-wrap: break-word !important;
     word-break: normal !important;
 }
 
@@ -290,11 +283,7 @@ header {
     }
 }
 
-/* COLUMN MESSAGE BUG FIX
-   Some user bubbles were collapsing to min-content width, and because
-   overflow-wrap:anywhere allows breaking after every character, the browser
-   happily turned normal sentences into cursed vertical noodles.
-*/
+/* COLUMN MESSAGE BUG FIX */
 .chat-message-user .chat-bubble,
 .chat-message-user .chat-bubble-user-short,
 .chat-message-user .chat-bubble-user-long {
