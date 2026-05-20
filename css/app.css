@@ -150,7 +150,7 @@ header {
     box-sizing: border-box;
     display: block;
 
-    flex: 0 1 auto;
+    flex: 1 1 auto;
     width: fit-content !important;
     min-width: min(12rem, 100%) !important;
     max-width: min(80%, 48rem) !important;
