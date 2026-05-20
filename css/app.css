@@ -148,10 +148,12 @@ header {
 
 .chat-message-user .chat-bubble {
     box-sizing: border-box;
-    display: block;
+    display: inline-block !important;
 
     flex: 0 0 auto !important;
-    width: auto !important;
+    flex-basis: auto !important;
+
+    width: max-content !important;
     min-width: 0 !important;
     max-width: min(80%, 48rem) !important;
 
@@ -163,11 +165,11 @@ header {
 
 .chat-message-user .message-content {
     box-sizing: border-box;
-    display: inline-block;
+    display: block;
 
-    width: max-content !important;
-    max-width: min(80vw, 48rem) !important;
+    width: auto !important;
     min-width: 0 !important;
+    max-width: 100% !important;
 
     white-space: pre-wrap !important;
     overflow-wrap: break-word !important;
