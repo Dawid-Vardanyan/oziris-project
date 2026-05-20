@@ -144,19 +144,17 @@ html, body {
     justify-self: end !important;
 
     /*
-       Do NOT use width: fit-content here.
-       In this grid context Chrome/Firefox can resolve it to a near-min-content
-       width, especially after overflow-wrap rules are applied. Result:
-       normal sentences turn into cursed vertical poetry. Humanity survives.
+       Use fit-content on the bubble and keep inner content at width:auto.
+       This prevents messages from collapsing to narrow min-content columns.
     */
-    width: max-content !important;
+    width: fit-content !important;
     max-width: min(920px, 80%) !important;
     min-width: 3rem !important;
     overflow: hidden !important;
 }
 
 .chat-message-user .chat-bubble .message-content {
-    width: max-content !important;
+    width: auto !important;
     max-width: 100% !important;
 }
 
@@ -198,7 +196,7 @@ html, body {
     .chat-message-user .chat-bubble,
     .chat-message-user .chat-bubble-user-short,
     .chat-message-user .chat-bubble-user-long {
-        width: max-content !important;
+        width: fit-content !important;
         max-width: 100% !important;
     }
 }
