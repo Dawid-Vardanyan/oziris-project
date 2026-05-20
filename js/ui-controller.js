@@ -268,6 +268,7 @@
                     session.messages.forEach(msg => {
                         this.appendMessageElement(msg.role, msg.text, msg.attachments || []);
                     });
+                    this.applySyntaxHighlighting(this.els.messagesContainer);
                     this.scrollToBottom();
                 }
             },
@@ -304,6 +305,33 @@
                 msgDiv.appendChild(avatar);
                 msgDiv.appendChild(bubble);
                 this.els.messagesContainer.appendChild(msgDiv);
+                this.applySyntaxHighlighting(bubble);
+            },
+
+            applySyntaxHighlighting(scope) {
+                if (!window.hljs || !scope) return;
+
+                scope.querySelectorAll('pre code').forEach(codeBlock => {
+                    const languageClass = Array.from(codeBlock.classList).find(name => name.startsWith('language-'));
+                    if (languageClass) {
+                        const language = languageClass.replace('language-', '').toLowerCase();
+                        const aliases = {
+                            js: 'javascript',
+                            ts: 'typescript',
+                            sh: 'bash',
+                            shell: 'bash',
+                            yml: 'yaml',
+                            html: 'xml'
+                        };
+                        const normalizedLanguage = aliases[language] || language;
+                        if (hljs.getLanguage(normalizedLanguage)) {
+                            codeBlock.classList.remove(languageClass);
+                            codeBlock.classList.add(`language-${normalizedLanguage}`);
+                        }
+                    }
+
+                    hljs.highlightElement(codeBlock);
+                });
             },
 
             escapeHtml(value) {

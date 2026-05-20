@@ -66,11 +66,16 @@
 }
 
 .message-content pre code {
+    display: block;
     background: transparent;
     padding: 0;
     color: #E5E7EB;
-    white-space: pre-wrap;
-    overflow-wrap: anywhere;
+    white-space: pre;
+    overflow-wrap: normal;
+}
+
+.message-content pre code.hljs {
+    background: transparent;
 }
 
 .message-content blockquote {
