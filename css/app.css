@@ -135,11 +135,9 @@ header {
     flex: 0 0 2rem;
 }
 
-.chat-bubble {
-    box-sizing: border-box;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    overflow: hidden;
+.chat-message-user {
+    width: 100% !important;
+    justify-content: flex-end;
 }
 
 .chat-message-ai .chat-bubble {
@@ -149,16 +147,21 @@ header {
 
 .chat-message-user .chat-bubble {
     flex: 0 1 auto;
-    width: fit-content !important;
+    width: auto !important;
     max-width: min(920px, calc(100% - 3.25rem)) !important;
+    min-width: min(12rem, 100%) !important;
+    overflow: visible;
 }
 
 .chat-message-user .message-content {
+    display: block;
     width: auto !important;
+    min-width: 0;
     max-width: 100% !important;
-    white-space: normal;
-    overflow-wrap: anywhere;
+    white-space: pre-wrap;
+    overflow-wrap: break-word;
     word-break: normal;
+    overflow: visible;
 }
 
 .chat-bubble .message-content {
