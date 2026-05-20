@@ -104,26 +104,31 @@ header {
 }
 
 /* Hard override for message widths.
-   Previous versions kept an old 48rem cap alive, which is why AI replies looked like a pillar.
-   The !important rules are intentional here: they defeat Tailwind utilities and older cached class rules. */
+   Rows now always occupy the chat width. The bubble decides its own size.
+   This prevents user bubbles from collapsing into a tragic cyan skyscraper. */
 .chat-message {
     box-sizing: border-box;
     display: flex;
+    width: 100% !important;
     min-width: 0 !important;
-    max-width: none !important;
+    max-width: 100% !important;
     overflow: visible;
 }
 
 .chat-message-ai {
     width: min(100%, 1280px) !important;
     max-width: calc(100% - 1rem) !important;
-    margin-right: auto;
+    margin-right: auto !important;
+    margin-left: 0 !important;
+    justify-content: flex-start;
 }
 
 .chat-message-user {
-    width: auto !important;
-    max-width: min(920px, 88%) !important;
-    margin-left: auto;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    justify-content: flex-start;
 }
 
 .chat-avatar {
@@ -144,11 +149,19 @@ header {
 
 .chat-message-user .chat-bubble {
     flex: 0 1 auto;
-    width: auto;
+    width: fit-content !important;
+    max-width: min(920px, calc(100% - 3.25rem)) !important;
+}
+
+.chat-message-user .message-content {
+    width: auto !important;
+    max-width: 100% !important;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
 }
 
 .chat-bubble .message-content {
-    width: 100%;
     min-width: 0;
     max-width: 100%;
     overflow: hidden;

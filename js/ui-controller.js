@@ -285,7 +285,7 @@
 
                 // Dymek wiadomości. AI output is rendered through the MarkdownRenderer module.
                 const bubble = document.createElement('div');
-                const formattedText = MarkdownRenderer.render(text);
+                const formattedText = isUser ? this.formatUserText(text) : MarkdownRenderer.render(text);
 
                 bubble.className = `chat-bubble p-4 rounded-2xl ${isUser ? 'bg-oziris-500 text-white rounded-br-sm shadow-[0_4px_15px_rgba(6,182,212,0.2)]' : 'bg-gray-800 border border-gray-700 text-gray-100 rounded-bl-sm'}`;
 
@@ -304,6 +304,13 @@
                 msgDiv.appendChild(avatar);
                 msgDiv.appendChild(bubble);
                 this.els.messagesContainer.appendChild(msgDiv);
+            },
+
+            formatUserText(text) {
+                return this.escapeHtml(text)
+                    .replace(/\n/g, '<br/>')
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/`([^`]+)`/g, '<code class="bg-cyan-950/70 px-1 py-0.5 rounded text-cyan-100 font-mono text-sm">$1</code>');
             },
 
             escapeHtml(value) {
