@@ -52,3 +52,43 @@ body {
     transform: translateY(0) !important;
     pointer-events: auto !important;
 }
+
+/* Responsive chat layout fixes */
+#chatArea,
+#messagesContainer {
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: hidden;
+}
+
+.chat-message {
+    width: 100%;
+    max-width: min(48rem, calc(100% - 0.25rem));
+    min-width: 0;
+}
+
+.chat-message.ml-auto {
+    margin-left: auto;
+}
+
+.chat-bubble {
+    min-width: 0;
+    max-width: 100%;
+    overflow: hidden;
+}
+
+.chat-bubble .message-content {
+    min-width: 0;
+    max-width: 100%;
+}
+
+@media (max-width: 640px) {
+    .chat-message {
+        max-width: 100%;
+        gap: 0.5rem;
+    }
+
+    .chat-bubble {
+        padding: 0.85rem;
+    }
+}

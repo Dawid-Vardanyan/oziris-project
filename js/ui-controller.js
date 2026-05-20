@@ -276,7 +276,7 @@
                 const msgDiv = document.createElement('div');
                 const isUser = role === 'user';
 
-                msgDiv.className = `flex items-end gap-3 max-w-[85%] sm:max-w-3xl ${isUser ? 'ml-auto flex-row-reverse' : ''}`;
+                msgDiv.className = `chat-message flex items-end gap-3 ${isUser ? 'ml-auto flex-row-reverse' : ''}`;
 
                 // Avatar
                 const avatar = document.createElement('div');
@@ -287,7 +287,7 @@
                 const bubble = document.createElement('div');
                 const formattedText = MarkdownRenderer.render(text);
 
-                bubble.className = `p-4 rounded-2xl ${isUser ? 'bg-oziris-500 text-white rounded-br-sm shadow-[0_4px_15px_rgba(6,182,212,0.2)]' : 'bg-gray-800 border border-gray-700 text-gray-100 rounded-bl-sm'}`;
+                bubble.className = `chat-bubble p-4 rounded-2xl ${isUser ? 'bg-oziris-500 text-white rounded-br-sm shadow-[0_4px_15px_rgba(6,182,212,0.2)]' : 'bg-gray-800 border border-gray-700 text-gray-100 rounded-bl-sm'}`;
 
                 const attachmentHtml = attachments.length > 0
                     ? `<div class="mb-3 flex flex-wrap gap-2">${attachments.map(file => `

@@ -137,7 +137,8 @@ const MarkdownRenderer = (() => {
         const bodyHtml = bodyRows.map(row => {
             const cells = Array.from({ length: columnCount }, (_unused, index) => {
                 const align = alignments[index] || 'left';
-                return `<td style="text-align:${align}">${renderInline(row[index] || '')}</td>`;
+                const label = escapeHtml(headerRow[index] || `Column ${index + 1}`);
+                return `<td data-label="${label}" style="text-align:${align}">${renderInline(row[index] || '')}</td>`;
             }).join('');
             return `<tr>${cells}</tr>`;
         }).join('');
