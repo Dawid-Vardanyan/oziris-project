@@ -107,56 +107,58 @@ header {
    Rows now always occupy the chat width. The bubble decides its own size.
    This prevents user bubbles from collapsing into a tragic cyan skyscraper. */
 .chat-message {
-    justify-content: flex-end;
+    box-sizing: border-box;
+    display: flex;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: visible;
 }
 
 .chat-message-ai {
     width: min(100%, 1280px) !important;
     max-width: calc(100% - 1rem) !important;
-    margin-right: 0 !important;
-    margin-left: auto !important;
+    margin-right: auto !important;
+    margin-left: 0 !important;
     justify-content: flex-start;
 }
 
 .chat-message-user {
+    display: flex;
     width: 100% !important;
-    max-width: 100% !important;
-    margin-left: 0 !important;
-    margin-right: 0 !important;
-    justify-content: flex-start;
+    justify-content: flex-end;
 }
+
 
 .chat-avatar {
     flex: 0 0 2rem;
 }
 
-.chat-message-user {
-    width: 100% !important;
+.chat-bubble {
+    box-sizing: border-box;
+    min-width: 0 !important;
     max-width: 100% !important;
-    margin-left: auto !important;
-    justify-content: flex-end;
-    margin-right: 0 !important;
+    overflow: hidden;
 }
 
 .chat-message-ai .chat-bubble {
     flex: 1 1 auto;
-    width: auto !important;
+    width: 100% !important;
 }
 
 .chat-message-user .chat-bubble {
-    width: auto !important;
-    flex: 1 1 auto;
+    flex: 0 1 auto;
+    width: fit-content !important;
+    max-width: 90%;
 }
 
 .chat-message-user .message-content {
     display: block;
     width: auto !important;
-    min-width: 0;
-    max-width: 100% !important;
+    max-width: 100%;
     white-space: pre-wrap;
     overflow-wrap: break-word;
-    word-break: normal;
-    overflow: visible;
+    word-break: break-word;
 }
 
 .chat-bubble .message-content {
