@@ -124,9 +124,10 @@ header {
 }
 
 .chat-message-user {
+    display: flex;
     width: 100% !important;
     max-width: 100% !important;
-    justify-content: flex-end;
+    justify-content: flex-end !important;
 }
 
 .chat-avatar {
@@ -147,20 +148,31 @@ header {
 
 .chat-message-user .chat-bubble {
     box-sizing: border-box;
+    display: block;
+
     flex: 0 1 auto;
-    width: fit-content !important;
+    width: auto !important;
     max-width: 80% !important;
+    min-width: 2.5rem !important;
+
     margin-left: auto !important;
-    min-width: 0 !important;
+    margin-right: 0 !important;
+
+    overflow: visible !important;
 }
 
+
 .chat-message-user .message-content {
-    width: auto !important;
-    max-width: 100% !important;
+    display: block;
+    width: max-content;
+    max-width: 100%;
+
     white-space: normal;
     overflow-wrap: anywhere;
     word-break: normal;
-    text-align: left;
+
+    text-align: right;
+    overflow: visible !important;
 }
 
 .chat-bubble .message-content {
