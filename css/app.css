@@ -107,12 +107,7 @@ header {
    Rows now always occupy the chat width. The bubble decides its own size.
    This prevents user bubbles from collapsing into a tragic cyan skyscraper. */
 .chat-message {
-    box-sizing: border-box;
-    display: flex;
-    width: 100% !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
-    overflow: visible;
+    justify-content: flex-end;
 }
 
 .chat-message-ai {
@@ -136,11 +131,11 @@ header {
 }
 
 .chat-message-user {
-    width: auto !important;
-	max-width: 100% !important;
-	margin-left: auto !important;
-	margin-right: 0 !important;
-    justify-content: flex-start;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: auto !important;
+    justify-content: flex-end;
+    margin-right: 0 !important;
 }
 
 .chat-message-ai .chat-bubble {
@@ -149,8 +144,8 @@ header {
 }
 
 .chat-message-user .chat-bubble {
+    width: auto !important;
     flex: 1 1 auto;
-    width: 100% !important;
 }
 
 .chat-message-user .message-content {
