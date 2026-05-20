@@ -135,9 +135,16 @@ header {
     flex: 0 0 2rem;
 }
 
+/* Existing/Modified Block */
 .chat-message-user {
-    width: 100% !important;
+    width: 100% !important; /* <-- Change this */
+    max-width: 100% !important;
+    margin-left: 0 !important; /* <-- Change this */
+    margin-right: 0 !important;
     justify-content: flex-start;
+    /* Add the following rule */
+    margin-left: auto !important; /* This pushes the entire message block to the right */
+    justify-content: flex-end; /* This aligns the content *inside* the message block to the right */
 }
 
 .chat-message-ai .chat-bubble {
@@ -145,9 +152,11 @@ header {
     width: 100% !important;
 }
 
+/* Modified Block */
 .chat-message-user .chat-bubble {
     flex: 1 1 auto;
-    width: 100% !important;
+    width: auto !important; /* <-- Change this to allow dynamic sizing */
+    /* You might also want to remove the max-width constraint here if it was interfering */
 }
 
 .chat-message-user .message-content {
