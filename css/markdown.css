@@ -1,36 +1,20 @@
-:root {
-    --md-text: #e5e7eb;
-    --md-heading: #f9fafb;
-    --md-muted: #d1d5db;
-    --md-cyan-500: #06b6d4;
-    --md-cyan-400: #22d3ee;
-    --md-cyan-200: #a5f3fc;
-    --md-panel: #0b0f19;
-    --md-panel-border: rgb(75 85 99 / 75%);
-}
-
-/* Markdown / AI response rendering */
+/* Markdown / AI-response rendering */
 .message-content {
-    container-type: inline-size;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
     word-break: normal;
 }
 
-.message-content > *:first-child { margin-top: 0; }
-.message-content > *:last-child { margin-bottom: 0; }
-
-.message-content p,
-.message-content li,
-.message-content blockquote,
-.message-content h1,
-.message-content h2,
-.message-content h3,
-.message-content h4 {
-    overflow-wrap: break-word;
-    word-break: normal;
+.message-content > *:first-child {
+    margin-top: 0;
 }
 
-.message-content p { margin: 0.72rem 0; }
+.message-content > *:last-child {
+    margin-bottom: 0;
+}
+
+.message-content p {
+    margin: 0.72rem 0;
+}
 
 .message-content h1,
 .message-content h2,
@@ -39,7 +23,7 @@
     margin: 1rem 0 0.55rem;
     font-weight: 700;
     line-height: 1.25;
-    color: var(--md-heading);
+    color: #F9FAFB;
 }
 
 .message-content h1 { font-size: 1.45rem; }
@@ -50,54 +34,52 @@
 .message-content hr {
     margin: 1rem 0;
     border: 0;
-    border-top: 1px solid rgb(148 163 184 / 28%);
+    border-top: 1px solid rgba(148, 163, 184, 0.28);
 }
 
-.message-content strong { color: #fff; font-weight: 700; }
-.message-content em { font-style: italic; }
+.message-content strong {
+    font-weight: 700;
+    color: #FFFFFF;
+}
+
+.message-content em {
+    font-style: italic;
+}
 
 .message-content code {
     border-radius: 0.35rem;
-    background: rgb(11 15 25 / 85%);
+    background: rgba(11, 15, 25, 0.85);
     padding: 0.1rem 0.3rem;
-    color: var(--md-cyan-400);
+    color: #22D3EE;
     font-family: 'JetBrains Mono', monospace;
     font-size: 0.88em;
 }
 
 .message-content pre {
-    box-sizing: border-box;
     margin: 0.85rem 0;
-    width: 100%;
     max-width: 100%;
     overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
     border-radius: 0.85rem;
-    border: 1px solid var(--md-panel-border);
-    background: var(--md-panel);
+    border: 1px solid rgba(75, 85, 99, 0.75);
+    background: #0B0F19;
     padding: 0.9rem;
 }
 
 .message-content pre code {
-    display: block;
     background: transparent;
     padding: 0;
-    color: var(--md-text);
-    min-width: 0;
-    max-width: 100%;
+    color: #E5E7EB;
     white-space: pre-wrap;
-    overflow-wrap: break-word;
-    word-break: break-word;
+    overflow-wrap: anywhere;
 }
 
 .message-content blockquote {
     margin: 0.85rem 0;
-    border-left: 3px solid var(--md-cyan-500);
+    border-left: 3px solid #06B6D4;
     border-radius: 0.35rem;
-    background: rgb(6 182 212 / 8%);
+    background: rgba(6, 182, 212, 0.08);
     padding: 0.7rem 0.9rem;
-    color: var(--md-muted);
+    color: #D1D5DB;
 }
 
 .message-content ul,
@@ -111,62 +93,184 @@
 .message-content li { margin: 0.25rem 0; }
 
 .message-content .table-wrapper {
-    box-sizing: border-box;
     margin: 0.95rem 0;
     width: 100%;
-    overflow-x: auto;
-    overflow-y: hidden;
-    -webkit-overflow-scrolling: touch;
-    border: 1px solid rgb(75 85 99 / 80%);
+    max-width: 100%;
+    overflow-x: hidden;
+    border: 1px solid rgba(75, 85, 99, 0.8);
     border-radius: 0.85rem;
 }
 
 .message-content table {
-    box-sizing: border-box;
     width: 100%;
-    min-width: 0;
+    max-width: 100%;
     table-layout: fixed;
     border-collapse: collapse;
-    background: rgb(17 24 39 / 74%);
+    background: rgba(17, 24, 39, 0.74);
+}
+
+.message-content th,
+.message-content td {
+    border-bottom: 1px solid rgba(75, 85, 99, 0.68);
+    padding: 0.7rem 0.8rem;
+    vertical-align: top;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.message-content th {
+    background: rgba(31, 41, 55, 0.95);
+    color: #F9FAFB;
+    font-weight: 700;
+}
+
+.message-content tr:last-child td {
+    border-bottom: 0;
+}
+
+.message-content .math-block {
+    margin: 0.95rem 0;
+    max-width: 100%;
+    overflow-x: hidden;
+    border: 1px solid rgba(6, 182, 212, 0.28);
+    border-radius: 0.85rem;
+    background: rgba(6, 182, 212, 0.07);
+    padding: 0.9rem 1rem;
+    color: #E5E7EB;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.92rem;
+    white-space: normal;
+    overflow-wrap: anywhere;
+}
+
+.message-content .math-arrow {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 0 0.35rem;
+    vertical-align: middle;
+}
+
+.message-content .math-arrow-label {
+    font-family: Inter, sans-serif;
+    font-size: 0.7rem;
+    color: #A5F3FC;
+    line-height: 1;
+}
+
+.message-content .math-arrow-line {
+    line-height: 1.05;
+    color: #22D3EE;
+}
+
+
+@media (max-width: 720px) {
+    .message-content table,
+    .message-content thead,
+    .message-content tbody,
+    .message-content tr,
+    .message-content th,
+    .message-content td {
+        display: block;
+        width: 100%;
+    }
+
+    .message-content thead {
+        display: none;
+    }
+
+    .message-content tr {
+        border-bottom: 1px solid rgba(75, 85, 99, 0.75);
+    }
+
+    .message-content tr:last-child {
+        border-bottom: 0;
+    }
+
+    .message-content td {
+        border-bottom: 1px solid rgba(75, 85, 99, 0.35);
+        padding: 0.65rem 0.75rem;
+    }
+
+    .message-content td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 0.2rem;
+        color: #A5F3FC;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+}
+
+/* Content-based responsiveness: works even when the app is inside a narrow pane but the browser viewport is wide. */
+.message-content {
+    container-type: inline-size;
+}
+
+.message-content p,
+.message-content li,
+.message-content blockquote,
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4 {
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.message-content .table-wrapper {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.message-content table {
+    box-sizing: border-box;
+    min-width: 0;
 }
 
 .message-content th,
 .message-content td {
     min-width: 0;
     max-width: 100%;
-    border-bottom: 1px solid rgb(75 85 99 / 68%);
-    padding: 0.7rem 0.8rem;
-    vertical-align: top;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
     word-break: break-word;
 }
 
-.message-content th {
-    background: rgb(31 41 55 / 95%);
-    color: var(--md-heading);
-    font-weight: 700;
-}
-
-.message-content tr:last-child td { border-bottom: 0; }
-
-.message-content .math-block {
+.message-content pre {
     box-sizing: border-box;
-    margin: 0.95rem 0;
     width: 100%;
-    min-width: 0;
     max-width: 100%;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
-    border: 1px solid rgb(6 182 212 / 28%);
-    border-radius: 0.85rem;
-    background: rgb(6 182 212 / 7%);
-    padding: 0.9rem 1rem;
-    color: var(--md-text);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.92rem;
+}
+
+.message-content pre code {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.message-content .math-block {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
     white-space: normal;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
     word-break: break-word;
 }
 
@@ -182,77 +286,13 @@
 .message-content .math-block .math-token {
     min-width: 0;
     max-width: 100%;
-    overflow-wrap: break-word;
+    overflow-wrap: anywhere;
 }
-
-.message-content .math-arrow {
-    display: inline-flex;
-    flex-direction: column;
-    align-items: center;
-    margin: 0 0.35rem;
-    vertical-align: middle;
-}
-
-.message-content .math-arrow-label {
-    font-family: Inter, sans-serif;
-    font-size: 0.7rem;
-    color: var(--md-cyan-200);
-    line-height: 1;
-}
-
-.message-content .math-arrow-line {
-    line-height: 1.05;
-    color: var(--md-cyan-400);
-}
-
-/* Syntax highlighting for fenced code blocks */
-.message-content .code-block {
-    margin: 0.95rem 0;
-    max-width: 100%;
-    overflow: hidden;
-    border: 1px solid rgb(75 85 99 / 78%);
-    border-radius: 0.9rem;
-    background: var(--md-panel);
-}
-
-.message-content .code-block figcaption {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 1px solid rgb(75 85 99 / 62%);
-    background: rgb(17 24 39 / 95%);
-    padding: 0.48rem 0.75rem;
-    color: var(--md-cyan-200);
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-}
-
-.message-content .code-block pre {
-    margin: 0;
-    border: 0;
-    border-radius: 0;
-    background: transparent;
-}
-
-.message-content .code-block code.syntax-highlight { color: var(--md-text); }
-.message-content .token.comment { color: #64748b; font-style: italic; }
-.message-content .token.keyword { color: #a78bfa; font-weight: 700; }
-.message-content .token.string { color: #86efac; }
-.message-content .token.number { color: #fbbf24; }
-.message-content .token.operator { color: #67e8f9; }
-.message-content .token.function { color: #93c5fd; }
-.message-content .token.property { color: #f0abfc; }
-.message-content .token.attribute { color: #facc15; }
-.message-content .token.tag { color: #fb7185; }
-.message-content .token.variable { color: #fda4af; }
-.message-content .language-sql .token.keyword { color: #38bdf8; }
-.message-content .language-sql .token.function { color: #c4b5fd; }
 
 @container (max-width: 720px) {
-    .message-content .table-wrapper { overflow-x: hidden; }
+    .message-content .table-wrapper {
+        overflow-x: hidden;
+    }
 
     .message-content table,
     .message-content thead,
@@ -264,12 +304,20 @@
         width: 100%;
     }
 
-    .message-content thead { display: none; }
-    .message-content tr { border-bottom: 1px solid rgb(75 85 99 / 75%); }
-    .message-content tr:last-child { border-bottom: 0; }
+    .message-content thead {
+        display: none;
+    }
+
+    .message-content tr {
+        border-bottom: 1px solid rgba(75, 85, 99, 0.75);
+    }
+
+    .message-content tr:last-child {
+        border-bottom: 0;
+    }
 
     .message-content td {
-        border-bottom: 1px solid rgb(75 85 99 / 35%);
+        border-bottom: 1px solid rgba(75, 85, 99, 0.35);
         padding: 0.65rem 0.75rem;
     }
 
@@ -277,7 +325,52 @@
         content: attr(data-label);
         display: block;
         margin-bottom: 0.2rem;
-        color: var(--md-cyan-200);
+        color: #A5F3FC;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+}
+
+/* Fallback for browsers without container queries. */
+@media (max-width: 900px) {
+    .message-content .table-wrapper {
+        overflow-x: hidden;
+    }
+
+    .message-content table,
+    .message-content thead,
+    .message-content tbody,
+    .message-content tr,
+    .message-content th,
+    .message-content td {
+        display: block;
+        width: 100%;
+    }
+
+    .message-content thead {
+        display: none;
+    }
+
+    .message-content tr {
+        border-bottom: 1px solid rgba(75, 85, 99, 0.75);
+    }
+
+    .message-content tr:last-child {
+        border-bottom: 0;
+    }
+
+    .message-content td {
+        border-bottom: 1px solid rgba(75, 85, 99, 0.35);
+        padding: 0.65rem 0.75rem;
+    }
+
+    .message-content td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 0.2rem;
+        color: #A5F3FC;
         font-size: 0.72rem;
         font-weight: 700;
         text-transform: uppercase;

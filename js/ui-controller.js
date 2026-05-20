@@ -276,7 +276,7 @@
                 const msgDiv = document.createElement('div');
                 const isUser = role === 'user';
 
-                msgDiv.className = `chat-message chat-message-${isUser ? 'user' : 'ai'} flex items-end gap-3 ${isUser ? 'justify-end' : 'justify-start'}`;
+                msgDiv.className = `chat-message chat-message-${isUser ? 'user' : 'ai'} flex items-end gap-3 ${isUser ? 'flex-row-reverse' : ''}`;
 
                 // Avatar
                 const avatar = document.createElement('div');
@@ -285,10 +285,9 @@
 
                 // Dymek wiadomości. AI output is rendered through the MarkdownRenderer module.
                 const bubble = document.createElement('div');
-                const formattedText = isUser ? this.formatUserText(text) : MarkdownRenderer.render(text);
+                const formattedText = MarkdownRenderer.render(text);
 
-                const userBubbleSizeClass = isUser && String(text || '').trim().length > 80 ? 'chat-bubble-user-long' : 'chat-bubble-user-short';
-                bubble.className = `chat-bubble ${isUser ? userBubbleSizeClass : ''} p-4 rounded-2xl ${isUser ? 'bg-oziris-500 text-white rounded-br-sm shadow-[0_4px_15px_rgba(6,182,212,0.2)]' : 'bg-gray-800 border border-gray-700 text-gray-100 rounded-bl-sm'}`;
+                bubble.className = `chat-bubble p-4 rounded-2xl ${isUser ? 'bg-oziris-500 text-white rounded-br-sm shadow-[0_4px_15px_rgba(6,182,212,0.2)]' : 'bg-gray-800 border border-gray-700 text-gray-100 rounded-bl-sm'}`;
 
                 const attachmentHtml = attachments.length > 0
                     ? `<div class="mb-3 flex flex-wrap gap-2">${attachments.map(file => `
@@ -302,21 +301,9 @@
 
                 bubble.innerHTML = `${attachmentHtml}<div class="message-content leading-relaxed text-sm md:text-base">${formattedText}</div>`;
 
-                if (isUser) {
-                    msgDiv.appendChild(bubble);
-                    msgDiv.appendChild(avatar);
-                } else {
-                    msgDiv.appendChild(avatar);
-                    msgDiv.appendChild(bubble);
-                }
+                msgDiv.appendChild(avatar);
+                msgDiv.appendChild(bubble);
                 this.els.messagesContainer.appendChild(msgDiv);
-            },
-
-            formatUserText(text) {
-                return this.escapeHtml(text)
-                    .replace(/\n/g, '<br/>')
-                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                    .replace(/`([^`]+)`/g, '<code class="bg-cyan-950/70 px-1 py-0.5 rounded text-cyan-100 font-mono text-sm">$1</code>');
             },
 
             escapeHtml(value) {

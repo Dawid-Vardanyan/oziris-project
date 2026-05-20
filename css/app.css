@@ -1,26 +1,70 @@
-:root {
-    --oz-bg-900: #0b0f19;
-    --oz-bg-800: #111827;
-    --oz-bg-700: #1f2937;
-    --oz-text-100: #f3f4f6;
-    --oz-accent-500: #06b6d4;
-    --oz-accent-400: #22d3ee;
+body {
+    background-color: #0B0F19;
+    color: #F3F4F6;
 }
 
-/* Base reset/layout */
-*, *::before, *::after { box-sizing: border-box; }
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #111827; 
+}
+::-webkit-scrollbar-thumb {
+    background: #374151; 
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #4B5563; 
+}
+
+/* Typing indicator dots */
+.typing-dot {
+    animation: typing 1.4s infinite ease-in-out both;
+}
+.typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+@keyframes typing {
+    0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+    40% { transform: scale(1); opacity: 1; }
+}
+
+.glass-panel {
+    background: rgba(17, 24, 39, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+
+.drag-drop-active #dropZoneOverlay {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.drag-drop-active #chatComposer {
+    border-color: #06B6D4;
+    box-shadow: 0 0 0 1px rgba(6, 182, 212, 0.45), 0 0 30px rgba(6, 182, 212, 0.18);
+}
+
+.toast-visible {
+    opacity: 1 !important;
+    transform: translateY(0) !important;
+    pointer-events: auto !important;
+}
+
+/* Responsive chat layout fixes
+   The app can be wide, narrow, or embedded in a weird browser pane because apparently layouts enjoy drama.
+   These rules make AI bubbles use available room on large screens while still shrinking safely on small screens. */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
 
 html,
 body {
     width: 100%;
     height: 100%;
     overflow: hidden;
-}
-
-body {
-    margin: 0;
-    background-color: var(--oz-bg-900);
-    color: var(--oz-text-100);
 }
 
 #appRoot,
@@ -32,12 +76,22 @@ header {
     max-width: 100%;
 }
 
-#appRoot { overflow: hidden; }
+#appRoot {
+    overflow: hidden;
+}
 
 #chatArea {
     width: 100%;
     overflow-x: hidden;
     overflow-y: auto;
+}
+
+#messagesContainer {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+    align-items: stretch;
 }
 
 #currentChatTitle,
@@ -49,129 +103,60 @@ header {
     white-space: nowrap;
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-
-::-webkit-scrollbar-track { background: var(--oz-bg-800); }
-
-::-webkit-scrollbar-thumb {
-    background: #374151;
-    border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover { background: #4b5563; }
-
-/* Micro-interactions */
-.typing-dot { animation: typing-dot 1.4s infinite ease-in-out both; }
-.typing-dot:nth-child(1) { animation-delay: -0.32s; }
-.typing-dot:nth-child(2) { animation-delay: -0.16s; }
-
-@keyframes typing-dot {
-    0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
-    40% { transform: scale(1); opacity: 1; }
-}
-
-.glass-panel {
-    background: rgb(17 24 39 / 70%);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-.drag-drop-active #dropZoneOverlay {
-    opacity: 1;
-    pointer-events: auto;
-}
-
-.drag-drop-active #chatComposer {
-    border-color: var(--oz-accent-500);
-    box-shadow: 0 0 0 1px rgb(6 182 212 / 45%), 0 0 30px rgb(6 182 212 / 18%);
-}
-
-.toast-visible {
-    opacity: 1 !important;
-    transform: translateY(0) !important;
-    pointer-events: auto !important;
-}
-
-/* Chat stream layout */
-#messagesContainer {
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    width: 100%;
-    overflow-x: hidden;
-    align-items: stretch;
-}
-
+/* Hard override for message widths.
+   Previous versions kept an old 48rem cap alive, which is why AI replies looked like a pillar.
+   The !important rules are intentional here: they defeat Tailwind utilities and older cached class rules. */
 .chat-message {
-    display: grid !important;
-    grid-template-columns: 2rem minmax(0, 1fr) 2rem;
-    column-gap: 0.75rem;
-    align-items: end;
-    width: 100% !important;
-    margin: 0 !important;
+    box-sizing: border-box;
+    display: flex;
     min-width: 0 !important;
-    max-width: 100% !important;
-    overflow: visible !important;
+    max-width: none !important;
+    overflow: visible;
+}
+
+.chat-message-ai {
+    width: min(100%, 1280px) !important;
+    max-width: calc(100% - 1rem) !important;
+    margin-right: auto;
+}
+
+.chat-message-user {
+    width: auto !important;
+    max-width: min(920px, 88%) !important;
+    margin-left: auto;
 }
 
 .chat-avatar {
-    width: 2rem;
-    height: 2rem;
     flex: 0 0 2rem;
 }
 
-.chat-message-ai .chat-avatar {
-    grid-column: 1;
-    justify-self: center;
+.chat-bubble {
+    box-sizing: border-box;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden;
 }
 
 .chat-message-ai .chat-bubble {
-    grid-column: 2;
-    justify-self: start;
-    width: fit-content !important;
-    max-width: min(1280px, 100%) !important;
-    min-width: 0 !important;
-    overflow: hidden;
+    flex: 1 1 auto;
+    width: 100% !important;
 }
 
-.chat-message-user .chat-avatar {
-    grid-column: 3;
-    justify-self: center;
-}
-
-.chat-message-user .chat-bubble,
-.chat-message-user .chat-bubble-user-short,
-.chat-message-user .chat-bubble-user-long {
-    grid-column: 2 !important;
-    justify-self: end !important;
-    width: fit-content !important;
-    max-width: min(920px, 80%) !important;
-    min-width: 3rem !important;
-    overflow: hidden !important;
-}
-
-.chat-message-user .chat-bubble .message-content {
-    width: auto !important;
-    max-width: 100% !important;
-}
-
-.chat-bubble .message-content,
-.chat-bubble .message-content * {
-    white-space: normal !important;
-    overflow-wrap: break-word !important;
-    word-break: normal !important;
+.chat-message-user .chat-bubble {
+    flex: 0 1 auto;
+    width: auto;
 }
 
 .chat-bubble .message-content {
-    display: block !important;
-    width: auto !important;
-    min-width: 0 !important;
-    max-width: 100% !important;
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     overflow: hidden;
+}
+
+.chat-bubble .message-content > * {
+    min-width: 0;
+    max-width: 100%;
 }
 
 @media (max-width: 768px) {
@@ -179,22 +164,19 @@ header {
         padding-left: 0.75rem;
         padding-right: 0.75rem;
     }
-}
 
-@media (max-width: 640px) {
-    .chat-message {
-        grid-template-columns: 1.75rem minmax(0, 1fr) 1.75rem;
-        column-gap: 0.5rem;
-    }
-
-    .chat-avatar {
-        width: 1.75rem !important;
-        height: 1.75rem !important;
-    }
-
-    .chat-message-user .chat-bubble,
-    .chat-message-user .chat-bubble-user-short,
-    .chat-message-user .chat-bubble-user-long {
+    .chat-message,
+    .chat-message-ai,
+    .chat-message-user {
+        width: 100% !important;
         max-width: 100% !important;
+    }
+
+    .chat-message {
+        gap: 0.5rem;
+    }
+
+    .chat-bubble {
+        padding: 0.85rem;
     }
 }
