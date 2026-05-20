@@ -164,47 +164,6 @@
     color: #22D3EE;
 }
 
-@media (max-width: 720px) {
-    .message-content table,
-    .message-content thead,
-    .message-content tbody,
-    .message-content tr,
-    .message-content th,
-    .message-content td {
-        display: block;
-        width: 100%;
-    }
-
-    .message-content thead {
-        display: none;
-    }
-
-    .message-content tr {
-        border-bottom: 1px solid rgba(75, 85, 99, 0.75);
-    }
-
-    .message-content tr:last-child {
-        border-bottom: 0;
-    }
-
-    .message-content td {
-        border-bottom: 1px solid rgba(75, 85, 99, 0.35);
-        padding: 0.65rem 0.75rem;
-    }
-
-    .message-content td::before {
-        content: attr(data-label);
-        display: block;
-        margin-bottom: 0.2rem;
-        color: #A5F3FC;
-        font-size: 0.72rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
-    }
-}
-
-/* Content-based responsiveness: works even when the app is inside a narrow pane but the browser viewport is wide. */
 .message-content {
     container-type: inline-size;
 }
@@ -332,7 +291,6 @@
     }
 }
 
-/* Fallback for browsers without container queries. */
 @media (max-width: 900px) {
     .message-content .table-wrapper {
         overflow-x: hidden;
@@ -424,10 +382,5 @@
 .message-content .token.tag { color: #FB7185; }
 .message-content .token.variable { color: #FDA4AF; }
 
-.message-content .language-sql .token.keyword {
-    color: #38BDF8;
-}
-
-.message-content .language-sql .token.function {
-    color: #C4B5FD;
-}
+.message-content .language-sql .token.keyword { color: #38BDF8; }
+.message-content .language-sql .token.function { color: #C4B5FD; }
