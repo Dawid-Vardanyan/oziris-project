@@ -137,7 +137,7 @@ header {
 
 .chat-message-user {
     width: 100% !important;
-    justify-content: flex-end;
+    justify-content: flex-start;
 }
 
 .chat-message-ai .chat-bubble {
