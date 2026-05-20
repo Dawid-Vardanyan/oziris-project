@@ -148,10 +148,8 @@ header {
 
 .chat-message-user .chat-bubble {
     box-sizing: border-box;
-    display: block;
 
-    flex: 0 1 auto;
-    width: auto !important;
+    flex: 0 1 fit-content;
     max-width: 80% !important;
     min-width: 2.5rem !important;
 
@@ -161,10 +159,8 @@ header {
     overflow: visible !important;
 }
 
-
 .chat-message-user .message-content {
     display: block;
-    width: max-content;
     max-width: 100%;
 
     white-space: normal;
