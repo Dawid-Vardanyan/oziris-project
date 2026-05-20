@@ -148,8 +148,9 @@ header {
 }
 
 .chat-message-user .chat-bubble {
-    flex: 0 1 auto;
+    flex: 1 1 0;
     width: 100% !important;
+    max-width: 100% !important;
 }
 
 .chat-message-user .message-content {
