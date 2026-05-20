@@ -86,6 +86,142 @@
             transform: translateY(0) !important;
             pointer-events: auto !important;
         }
+
+        .message-content h1,
+        .message-content h2,
+        .message-content h3 {
+            margin: 0.85rem 0 0.45rem;
+            font-weight: 700;
+            line-height: 1.25;
+            color: #F9FAFB;
+        }
+
+        .message-content h1 { font-size: 1.35rem; }
+        .message-content h2 { font-size: 1.2rem; }
+        .message-content h3 { font-size: 1.05rem; }
+
+        .message-content p {
+            margin: 0.45rem 0;
+        }
+
+        .message-content hr {
+            margin: 1rem 0;
+            border: 0;
+            border-top: 1px solid rgba(75, 85, 99, 0.9);
+        }
+
+        .message-content blockquote {
+            margin: 0.85rem 0;
+            padding: 0.75rem 1rem;
+            border-left: 3px solid #06B6D4;
+            background: rgba(17, 24, 39, 0.75);
+            border-radius: 0 0.75rem 0.75rem 0;
+            color: #D1D5DB;
+        }
+
+        .message-content ul,
+        .message-content ol {
+            margin: 0.55rem 0 0.55rem 1.25rem;
+            padding-left: 1rem;
+        }
+
+        .message-content ul { list-style: disc; }
+        .message-content ol { list-style: decimal; }
+        .message-content li { margin: 0.25rem 0; }
+
+        .message-content code {
+            background: #111827;
+            color: #22D3EE;
+            border: 1px solid rgba(55, 65, 81, 0.75);
+            border-radius: 0.35rem;
+            padding: 0.08rem 0.35rem;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875em;
+        }
+
+        .message-content pre {
+            margin: 0.85rem 0;
+            overflow-x: auto;
+            border-radius: 0.85rem;
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            background: #0B0F19;
+            padding: 1rem;
+        }
+
+        .message-content pre code {
+            border: 0;
+            background: transparent;
+            padding: 0;
+            color: #E5E7EB;
+            white-space: pre;
+        }
+
+        .message-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 0.9rem 0;
+            overflow: hidden;
+            border-radius: 0.85rem;
+            font-size: 0.9em;
+        }
+
+        .message-content th,
+        .message-content td {
+            border: 1px solid rgba(75, 85, 99, 0.85);
+            padding: 0.65rem 0.75rem;
+            vertical-align: top;
+        }
+
+        .message-content th {
+            background: rgba(6, 182, 212, 0.12);
+            color: #F9FAFB;
+            font-weight: 700;
+            text-align: left;
+        }
+
+        .message-content td {
+            background: rgba(17, 24, 39, 0.55);
+        }
+
+        .message-content .table-wrapper {
+            max-width: 100%;
+            overflow-x: auto;
+        }
+
+        .message-content .math-block {
+            margin: 0.9rem 0;
+            overflow-x: auto;
+            border: 1px solid rgba(6, 182, 212, 0.35);
+            border-radius: 0.85rem;
+            background: rgba(8, 145, 178, 0.08);
+            padding: 0.9rem 1rem;
+            font-family: 'JetBrains Mono', monospace;
+            color: #E0F2FE;
+            white-space: nowrap;
+        }
+
+        .message-content .math-arrow {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-width: 5rem;
+            margin: 0 0.35rem;
+            color: #22D3EE;
+            vertical-align: middle;
+        }
+
+        .message-content .math-arrow-label {
+            font-size: 0.72rem;
+            line-height: 1;
+            color: #BAE6FD;
+        }
+
+        .message-content .math-arrow-line {
+            line-height: 1.05;
+            letter-spacing: -0.08rem;
+        }
+
     </style>
 </head>
 <body class="h-screen w-full flex overflow-hidden selection:bg-oziris-500 selection:text-white">
@@ -791,12 +927,9 @@
                 avatar.className = `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border ${isUser ? 'bg-blue-600 border-blue-400/30' : 'bg-gray-800 border-oziris-500/30'}`;
                 avatar.innerHTML = isUser ? '<i class="ph-fill ph-user text-white text-sm"></i>' : '<i class="ph-fill ph-hexagon text-oziris-400 text-sm"></i>';
 
-                // Dymek wiadomości (Parsowanie prostego Markdown - pogrubienia i nowe linie)
+                // Dymek wiadomości z renderowaniem Markdown/AI formatting.
                 const bubble = document.createElement('div');
-                let formattedText = text.replace(/\n/g, '<br/>')
-                                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                                        .replace(/\*(.*?)\*/g, '<em>$1</em>')
-                                        .replace(/`(.*?)`/g, '<code class="bg-gray-900 px-1 py-0.5 rounded text-oziris-400 font-mono text-sm">$1</code>');
+                const formattedText = this.renderAiMarkdown(text);
 
                 bubble.className = `p-4 rounded-2xl ${isUser ? 'bg-oziris-500 text-white rounded-br-sm shadow-[0_4px_15px_rgba(6,182,212,0.2)]' : 'bg-gray-800 border border-gray-700 text-gray-100 rounded-bl-sm'}`;
 
@@ -810,11 +943,261 @@
                     `).join('')}</div>`
                     : '';
 
-                bubble.innerHTML = `${attachmentHtml}<div class="leading-relaxed text-sm md:text-base">${formattedText}</div>`;
+                bubble.innerHTML = `${attachmentHtml}<div class="message-content leading-relaxed text-sm md:text-base">${formattedText}</div>`;
 
                 msgDiv.appendChild(avatar);
                 msgDiv.appendChild(bubble);
                 this.els.messagesContainer.appendChild(msgDiv);
+            },
+
+            renderAiMarkdown(rawText) {
+                const text = String(rawText || '').replace(/\r\n/g, '\n');
+                const lines = text.split('\n');
+                const html = [];
+                let paragraph = [];
+                let listItems = [];
+                let listType = null;
+                let quoteLines = [];
+                let inCodeBlock = false;
+                let codeLines = [];
+                let codeFenceLanguage = '';
+
+                const flushParagraph = () => {
+                    if (paragraph.length === 0) return;
+                    html.push(`<p>${this.renderInlineMarkdown(paragraph.join(' '))}</p>`);
+                    paragraph = [];
+                };
+
+                const flushList = () => {
+                    if (listItems.length === 0) return;
+                    const tag = listType === 'ol' ? 'ol' : 'ul';
+                    html.push(`<${tag}>${listItems.map(item => `<li>${this.renderInlineMarkdown(item)}</li>`).join('')}</${tag}>`);
+                    listItems = [];
+                    listType = null;
+                };
+
+                const flushQuote = () => {
+                    if (quoteLines.length === 0) return;
+                    html.push(`<blockquote>${this.renderAiMarkdown(quoteLines.join('\n'))}</blockquote>`);
+                    quoteLines = [];
+                };
+
+                const flushCode = () => {
+                    if (!inCodeBlock) return;
+                    const languageClass = codeFenceLanguage ? ` class="language-${this.escapeHtml(codeFenceLanguage)}"` : '';
+                    html.push(`<pre><code${languageClass}>${this.escapeHtml(codeLines.join('\n'))}</code></pre>`);
+                    inCodeBlock = false;
+                    codeLines = [];
+                    codeFenceLanguage = '';
+                };
+
+                const flushAll = () => {
+                    flushParagraph();
+                    flushList();
+                    flushQuote();
+                };
+
+                for (let i = 0; i < lines.length; i += 1) {
+                    const line = lines[i];
+                    const trimmed = line.trim();
+
+                    const codeFenceMatch = trimmed.match(/^```\s*([\w-]*)\s*$/);
+                    if (codeFenceMatch) {
+                        if (inCodeBlock) {
+                            flushCode();
+                        } else {
+                            flushAll();
+                            inCodeBlock = true;
+                            codeFenceLanguage = codeFenceMatch[1] || '';
+                        }
+                        continue;
+                    }
+
+                    if (inCodeBlock) {
+                        codeLines.push(line);
+                        continue;
+                    }
+
+                    if (trimmed === '') {
+                        flushAll();
+                        continue;
+                    }
+
+                    if (/^\$\$/.test(trimmed)) {
+                        flushAll();
+                        const mathLines = [];
+                        let current = trimmed.replace(/^\$\$\s*/, '');
+                        let closed = false;
+
+                        if (/\$\$$/.test(current)) {
+                            mathLines.push(current.replace(/\s*\$\$$/, ''));
+                            closed = true;
+                        } else {
+                            if (current) mathLines.push(current);
+                            while (i + 1 < lines.length) {
+                                i += 1;
+                                const mathLine = lines[i].trim();
+                                if (/\$\$$/.test(mathLine)) {
+                                    mathLines.push(mathLine.replace(/\s*\$\$$/, ''));
+                                    closed = true;
+                                    break;
+                                }
+                                mathLines.push(mathLine);
+                            }
+                        }
+
+                        const mathContent = mathLines.join(' ').trim();
+                        html.push(this.renderMathBlock(mathContent || (closed ? '' : trimmed)));
+                        continue;
+                    }
+
+                    if (/^---+$/.test(trimmed) || /^\*\*\*+$/.test(trimmed) || /^___+$/.test(trimmed)) {
+                        flushAll();
+                        html.push('<hr>');
+                        continue;
+                    }
+
+                    const headingMatch = trimmed.match(/^(#{1,3})\s+(.+)$/);
+                    if (headingMatch) {
+                        flushAll();
+                        const level = headingMatch[1].length;
+                        html.push(`<h${level}>${this.renderInlineMarkdown(headingMatch[2])}</h${level}>`);
+                        continue;
+                    }
+
+                    if (trimmed.startsWith('>')) {
+                        flushParagraph();
+                        flushList();
+                        quoteLines.push(trimmed.replace(/^>\s?/, ''));
+                        continue;
+                    }
+
+                    const tableBlock = this.collectMarkdownTable(lines, i);
+                    if (tableBlock) {
+                        flushAll();
+                        html.push(this.renderMarkdownTable(tableBlock.rows, tableBlock.alignments));
+                        i = tableBlock.endIndex;
+                        continue;
+                    }
+
+                    const unorderedMatch = trimmed.match(/^[-*+]\s+(.+)$/);
+                    const orderedMatch = trimmed.match(/^\d+[.)]\s+(.+)$/);
+                    if (unorderedMatch || orderedMatch) {
+                        flushParagraph();
+                        flushQuote();
+                        const nextType = orderedMatch ? 'ol' : 'ul';
+                        if (listType && listType !== nextType) flushList();
+                        listType = nextType;
+                        listItems.push((orderedMatch || unorderedMatch)[1]);
+                        continue;
+                    }
+
+                    flushList();
+                    flushQuote();
+                    paragraph.push(trimmed);
+                }
+
+                flushCode();
+                flushAll();
+                return html.join('');
+            },
+
+            renderInlineMarkdown(value) {
+                let html = this.escapeHtml(value);
+
+                const codeSpans = [];
+                html = html.replace(/`([^`]+)`/g, (match, code) => {
+                    const token = `@@CODE_SPAN_${codeSpans.length}@@`;
+                    codeSpans.push(`<code>${code}</code>`);
+                    return token;
+                });
+
+                html = html.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+                           .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+                           .replace(/(^|\s)\*([^*]+)\*(?=\s|$|[.,;:!?])/g, '$1<em>$2</em>')
+                           .replace(/(^|\s)_([^_]+)_(?=\s|$|[.,;:!?])/g, '$1<em>$2</em>');
+
+                codeSpans.forEach((codeHtml, index) => {
+                    html = html.replace(`@@CODE_SPAN_${index}@@`, codeHtml);
+                });
+
+                return html;
+            },
+
+            collectMarkdownTable(lines, startIndex) {
+                if (startIndex + 1 >= lines.length) return null;
+                const header = lines[startIndex].trim();
+                const separator = lines[startIndex + 1].trim();
+
+                if (!this.isMarkdownTableRow(header) || !/^\|?\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(separator)) {
+                    return null;
+                }
+
+                const alignments = this.splitMarkdownTableRow(separator).map(cell => {
+                    const trimmed = cell.trim();
+                    if (trimmed.startsWith(':') && trimmed.endsWith(':')) return 'center';
+                    if (trimmed.endsWith(':')) return 'right';
+                    return 'left';
+                });
+
+                const rows = [this.splitMarkdownTableRow(header)];
+                let endIndex = startIndex + 1;
+
+                for (let i = startIndex + 2; i < lines.length; i += 1) {
+                    const row = lines[i].trim();
+                    if (!this.isMarkdownTableRow(row)) break;
+                    rows.push(this.splitMarkdownTableRow(row));
+                    endIndex = i;
+                }
+
+                return { rows, alignments, endIndex };
+            },
+
+            isMarkdownTableRow(line) {
+                return line.includes('|') && line.trim().split('|').length >= 3;
+            },
+
+            splitMarkdownTableRow(row) {
+                return row.trim()
+                    .replace(/^\|/, '')
+                    .replace(/\|$/, '')
+                    .split('|')
+                    .map(cell => cell.trim());
+            },
+
+            renderMarkdownTable(rows, alignments = []) {
+                const [headerRow, ...bodyRows] = rows;
+                const headerHtml = headerRow.map((cell, index) => {
+                    const align = alignments[index] || 'left';
+                    return `<th style="text-align:${align}">${this.renderInlineMarkdown(cell)}</th>`;
+                }).join('');
+
+                const bodyHtml = bodyRows.map(row => {
+                    const cells = headerRow.map((_, index) => {
+                        const align = alignments[index] || 'left';
+                        return `<td style="text-align:${align}">${this.renderInlineMarkdown(row[index] || '')}</td>`;
+                    }).join('');
+                    return `<tr>${cells}</tr>`;
+                }).join('');
+
+                return `<div class="table-wrapper"><table><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table></div>`;
+            },
+
+            renderMathBlock(mathContent) {
+                let html = this.escapeHtml(mathContent)
+                    .replace(/\\text\{([^{}]*)\}/g, '$1')
+                    .replace(/\\xrightarrow\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g, (match, label) => {
+                        const cleanLabel = label.replace(/\\text\{([^{}]*)\}/g, '$1');
+                        return `<span class="math-arrow"><span class="math-arrow-label">${cleanLabel}</span><span class="math-arrow-line">──────▶</span></span>`;
+                    })
+                    .replace(/\\rightarrow/g, '→')
+                    .replace(/\\to/g, '→')
+                    .replace(/\\leftarrow/g, '←')
+                    .replace(/\\leftrightarrow/g, '↔')
+                    .replace(/\\n/g, ' ')
+                    .replace(/\s{2,}/g, ' ');
+
+                return `<div class="math-block">${html}</div>`;
             },
 
             escapeHtml(value) {
