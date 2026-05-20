@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project: OZIRIS</title>
+    <script src="js/tailwind-config.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <link rel="stylesheet" href="css/tailwind-local.css">
+    <link rel="stylesheet" href="css/app.css">
+    <link rel="stylesheet" href="css/markdown.css">
+</head>
+<body class="h-screen w-full flex overflow-hidden selection:bg-oziris-500 selection:text-white">
+
+    <!-- Pasek boczny - Sesje -->
+    <aside id="sidebar" class="w-72 bg-oziris-800 border-r border-gray-800 flex flex-col transition-transform duration-300 absolute md:relative z-40 h-full -translate-x-full md:translate-x-0">
+        <div class="p-4 border-b border-gray-800 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+                <i class="ph-fill ph-hexagon text-oziris-400 text-2xl"></i>
+                <h1 class="font-bold text-xl tracking-wider bg-clip-text text-transparent bg-gradient-to-r from-oziris-400 to-blue-500">
+                    OZIRIS
+                </h1>
+            </div>
+            <button id="closeSidebarBtn" class="md:hidden text-gray-400 hover:text-white">
+                <i class="ph ph-x text-xl"></i>
+            </button>
+        </div>
+
+        <div class="p-3">
+            <button id="newChatBtn" class="w-full flex items-center justify-center gap-2 bg-oziris-500 hover:bg-cyan-600 text-white py-2.5 rounded-lg font-medium transition-colors shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+                <i class="ph ph-plus-circle text-lg"></i>
+                Nowa Konwersacja
+            </button>
+        </div>
+
+        <!-- Lista konwersacji -->
+        <div id="sessionsList" class="flex-1 overflow-y-auto p-3 space-y-1">
+            <!-- Tutaj będą dynamicznie renderowane sesje -->
+        </div>
+
+        <div class="p-4 border-t border-gray-800">
+            <button id="settingsBtn" class="w-full flex items-center gap-3 text-gray-400 hover:text-white hover:bg-gray-800 p-2 rounded transition-colors">
+                <i class="ph ph-gear text-xl"></i>
+                <span class="font-medium text-sm">Konfiguracja N8N</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Overlay dla urządzeń mobilnych -->
+    <div id="mobileOverlay" class="fixed inset-0 bg-black/50 z-30 hidden md:hidden glass-panel"></div>
+
+    <!-- Główny obszar aplikacji -->
+    <main id="appRoot" class="flex-1 flex flex-col bg-oziris-900 relative h-full w-full min-w-0">
+        <div id="dropZoneOverlay" class="pointer-events-none absolute inset-4 z-40 flex items-center justify-center rounded-3xl border-2 border-dashed border-oziris-500 bg-oziris-900/80 opacity-0 transition-opacity duration-200 backdrop-blur-sm">
+            <div class="rounded-2xl border border-gray-700 bg-gray-800/90 px-6 py-5 text-center shadow-2xl">
+                <i class="ph ph-upload-simple text-4xl text-oziris-400"></i>
+                <p class="mt-2 font-semibold text-white">Upuść pliki tekstowe tutaj</p>
+                <p class="mt-1 text-xs text-gray-400">TXT, MD, JSON, CSV, LOG, XML, YAML</p>
+            </div>
+        </div>
+        
+        <!-- Nagłówek czatu -->
+        <header class="h-16 flex items-center justify-between px-4 lg:px-8 border-b border-gray-800 glass-panel z-10 flex-shrink-0">
+            <div class="flex items-center gap-3">
+                <button id="openSidebarBtn" class="md:hidden text-gray-400 hover:text-white p-1">
+                    <i class="ph ph-list text-2xl"></i>
+                </button>
+                <div class="flex flex-col">
+                    <h2 id="currentChatTitle" class="font-semibold text-gray-100 line-clamp-1 text-sm md:text-base">Nowa Konwersacja</h2>
+                    <span id="systemStatus" class="text-xs text-gray-400 flex items-center gap-1" title="Status systemu nie został jeszcze sprawdzony.">
+                        <span id="systemStatusDot" class="w-2 h-2 rounded-full bg-gray-500 animate-pulse"></span>
+                        <span id="systemStatusText">System: sprawdzanie...</span>
+                    </span>
+                </div>
+            </div>
+            <div class="flex gap-3 text-gray-400">
+                <button class="hover:text-white transition-colors" title="Eksportuj konwersację"><i class="ph ph-export text-xl"></i></button>
+                <button id="clearChatBtn" class="hover:text-red-400 transition-colors" title="Wyczyść obecny czat"><i class="ph ph-trash text-xl"></i></button>
+            </div>
+        </header>
+
+        <!-- Obszar wiadomości -->
+        <div id="chatArea" class="flex-1 min-h-0 overflow-y-auto p-4 md:p-8 space-y-6 scroll-smooth">
+            <!-- Ekran powitalny (Pusty stan) -->
+            <div id="emptyState" class="h-full flex flex-col items-center justify-center text-center max-w-lg mx-auto opacity-100 transition-opacity duration-300">
+                <div class="w-20 h-20 bg-gray-800 rounded-2xl flex items-center justify-center mb-6 shadow-[0_0_30px_rgba(6,182,212,0.15)] border border-gray-700">
+                    <i class="ph-fill ph-cpu text-4xl text-oziris-400"></i>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Project: <span class="text-oziris-400">OZIRIS</span></h3>
+                <p class="text-gray-400 mb-8 text-sm md:text-base">Zintegrowany interfejs sztucznej inteligencji. Gotowy do przyjęcia instrukcji i wykonania zadań poprzez sieć N8N.</p>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">
+                    <button class="suggestion-btn text-left p-3 border border-gray-700 rounded-lg bg-gray-800/50 hover:bg-gray-700 hover:border-oziris-500 transition-all text-sm text-gray-300">
+                        Przeanalizuj ostatnie logi z serwera...
+                    </button>
+                    <button class="suggestion-btn text-left p-3 border border-gray-700 rounded-lg bg-gray-800/50 hover:bg-gray-700 hover:border-oziris-500 transition-all text-sm text-gray-300">
+                        Uruchom workflow raportowania...
+                    </button>
+                </div>
+            </div>
+
+            <!-- Kontener na dynamiczne wiadomości -->
+            <div id="messagesContainer" class="hidden flex flex-col gap-6"></div>
+
+            <!-- Wskaźnik pisania (ukryty domyślnie) -->
+            <div id="typingIndicator" class="hidden flex items-end gap-3 max-w-[85%] sm:max-w-3xl">
+                <div class="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center flex-shrink-0 border border-oziris-500/30">
+                    <i class="ph-fill ph-hexagon text-oziris-400 text-sm"></i>
+                </div>
+                <div class="bg-gray-800 border border-gray-700 p-4 rounded-2xl rounded-bl-sm">
+                    <div class="flex gap-1.5 items-center h-4">
+                        <div class="w-2 h-2 rounded-full bg-oziris-500 typing-dot"></div>
+                        <div class="w-2 h-2 rounded-full bg-oziris-500 typing-dot"></div>
+                        <div class="w-2 h-2 rounded-full bg-oziris-500 typing-dot"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Panel wprowadzania -->
+        <div class="flex-shrink-0 w-full border-t border-gray-800 bg-oziris-900 px-4 py-4 md:px-8 z-20">
+            <div class="max-w-4xl mx-auto relative group">
+                <div class="pointer-events-none absolute -inset-1 bg-gradient-to-r from-oziris-500/20 to-blue-500/20 rounded-xl blur opacity-25 group-focus-within:opacity-75 transition duration-500"></div>
+                <div id="selectedFilePreview" class="hidden mb-2 rounded-xl border border-gray-700 bg-gray-800/80 px-3 py-2 text-sm text-gray-300">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex min-w-0 flex-1 items-start gap-2">
+                            <i class="ph ph-files text-oziris-400 text-lg mt-0.5"></i>
+                            <div class="min-w-0 flex-1">
+                                <div id="selectedFileName" class="space-y-1 font-medium text-gray-100"></div>
+                                <div id="selectedFileMeta" class="mt-1 text-xs text-gray-500"></div>
+                            </div>
+                        </div>
+                        <button type="button" id="removeFileBtn" class="flex-shrink-0 rounded-lg p-1 text-gray-500 hover:bg-gray-700 hover:text-red-400 transition-colors" title="Usuń wszystkie załączniki">
+                            <i class="ph ph-x text-lg"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="chatComposer" class="relative bg-gray-800 border border-gray-700 rounded-xl flex items-end shadow-2xl overflow-hidden transition-all duration-200">
+                    
+                    <input id="fileInput" type="file" class="hidden" multiple accept=".txt,.md,.markdown,.json,.csv,.log,.xml,.yaml,.yml,text/*,application/json" aria-label="Wybierz pliki tekstowe do wysłania">
+
+                    <button type="button" id="attachFileBtn" class="p-4 text-gray-400 hover:text-oziris-400 transition-colors" title="Załącz plik tekstowy / Kontekst n8n">
+                        <i class="ph ph-paperclip text-xl"></i>
+                    </button>
+                    
+                    <textarea id="chatInput" rows="1" placeholder="Napisz do OZIRISa... (Shift+Enter dla nowej linii)" class="flex-1 bg-transparent border-none focus:ring-0 resize-none py-4 text-gray-100 placeholder-gray-500 min-h-[56px] max-h-48 scrollbar-hide"></textarea>
+                    
+                    <button type="button" id="sendBtn" class="p-4 text-oziris-500 hover:text-white hover:bg-oziris-500 transition-all m-1 rounded-lg disabled:opacity-50 disabled:hover:bg-transparent disabled:hover:text-oziris-500">
+                        <i class="ph-fill ph-paper-plane-right text-xl"></i>
+                    </button>
+                </div>
+                <div class="text-center mt-2 text-[10px] text-gray-500 font-mono">
+                    System bazowy: N8N Webhook API • JSON: chatInput + attachments[]
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <div id="toast" class="fixed right-4 top-4 z-[60] max-w-sm translate-y-[-12px] rounded-xl border border-red-500/40 bg-red-950/90 px-4 py-3 text-sm text-red-100 opacity-0 shadow-2xl backdrop-blur transition-all duration-200 pointer-events-none">
+        <div class="flex items-start gap-2">
+            <i class="ph ph-warning-circle mt-0.5 text-lg text-red-300"></i>
+            <div id="toastMessage">Nieobsługiwany plik.</div>
+        </div>
+    </div>
+
+    <!-- Modal Ustawień N8N -->
+    <div id="settingsModal" class="fixed inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 glass-panel transition-opacity">
+        <div class="bg-oziris-800 border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
+            <div class="px-6 py-4 border-b border-gray-700 flex justify-between items-center bg-gray-800/50">
+                <h3 class="font-bold text-lg text-white flex items-center gap-2">
+                    <i class="ph ph-sliders text-oziris-400"></i> Konfiguracja API (N8N)
+                </h3>
+                <button id="closeSettingsBtn" class="text-gray-400 hover:text-white"><i class="ph ph-x"></i></button>
+            </div>
+            <div class="p-6 space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">N8N Webhook URL</label>
+                    <input type="text" id="n8nWebhookUrl" placeholder="https://twoj-n8n.com/webhook/oziris-chat" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-oziris-500 focus:ring-1 focus:ring-oziris-500 font-mono text-sm transition-all">
+                    <p class="text-xs text-gray-500 mt-1">Adres, na który aplikacja będzie wysyłać zapytania POST.</p>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">Bearer Token / API Key (Opcjonalnie)</label>
+                    <input type="password" id="n8nAuthToken" placeholder="Wprowadź klucz autoryzacji" class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-oziris-500 focus:ring-1 focus:ring-oziris-500 font-mono text-sm transition-all">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">System Prompt (Bypass)</label>
+                    <textarea id="n8nSystemPrompt" rows="3" placeholder="Zdefiniuj rolę OZIRISa dla n8n (jeśli używasz)..." class="w-full bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-oziris-500 focus:ring-1 focus:ring-oziris-500 text-sm transition-all resize-none"></textarea>
+                </div>
+            </div>
+            <div class="px-6 py-4 border-t border-gray-700 flex justify-end gap-3 bg-gray-800/50">
+                <button id="cancelSettingsBtn" class="px-4 py-2 text-sm font-medium text-gray-300 hover:text-white transition-colors">Anuluj</button>
+                <button id="saveSettingsBtn" class="px-4 py-2 text-sm font-medium bg-oziris-500 hover:bg-cyan-600 text-white rounded-lg transition-colors shadow-lg shadow-cyan-500/20">Zapisz konfigurację</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/n8n-integration.js"></script>
+    <script src="js/app-state.js"></script>
+    <script src="js/markdown-renderer.js"></script>
+    <script src="js/ui-controller.js"></script>
+    <script src="js/main.js"></script>
+
+</body>
+</html>
