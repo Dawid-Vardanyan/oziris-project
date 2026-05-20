@@ -33,3 +33,7 @@ The renderer supports:
 - fenced code blocks
 - inline code, bold, italic
 - simple `$$...$$` flow/math blocks
+
+## Overflow/responsive fix
+
+This build contains stronger chat containment rules. Wide AI content such as Markdown tables, code blocks and LaTeX-style flow diagrams is constrained inside the chat bubble. Tables switch to stacked cards based on the message width, not only the browser viewport width, so it also works when the app is shown in a narrow pane.

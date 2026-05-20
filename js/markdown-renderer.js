@@ -147,19 +147,38 @@ const MarkdownRenderer = (() => {
     }
 
     function renderMathBlock(content) {
-        let html = escapeHtml(content)
+        const arrowToken = '@@MATH_ARROW@@';
+        const labeledArrows = [];
+
+        let normalized = String(content ?? '')
             .replace(/\\text\{([^{}]*)\}/g, '$1')
             .replace(/\\xrightarrow\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}/g, (_match, label) => {
-                const cleanLabel = escapeHtml(label.replace(/\\text\{([^{}]*)\}/g, '$1'));
-                return `<span class="math-arrow"><span class="math-arrow-label">${cleanLabel}</span><span class="math-arrow-line">──────▶</span></span>`;
+                const cleanLabel = label.replace(/\\text\{([^{}]*)\}/g, '$1');
+                const token = `${arrowToken}${labeledArrows.length}@@`;
+                labeledArrows.push(cleanLabel);
+                return ` ${token} `;
             })
-            .replace(/\\rightarrow/g, '→')
-            .replace(/\\to/g, '→')
-            .replace(/\\leftarrow/g, '←')
-            .replace(/\\leftrightarrow/g, '↔')
-            .replace(/\s{2,}/g, ' ');
+            .replace(/\\rightarrow/g, ' → ')
+            .replace(/\\to/g, ' → ')
+            .replace(/\\leftarrow/g, ' ← ')
+            .replace(/\\leftrightarrow/g, ' ↔ ')
+            .replace(/\s{2,}/g, ' ')
+            .trim();
 
-        return `<div class="math-block">${html}</div>`;
+        const parts = normalized.split(/(→|←|↔|@@MATH_ARROW@@\d+@@)/g).filter(Boolean);
+        const html = parts.map(part => {
+            const labeled = part.match(/^@@MATH_ARROW@@(\d+)@@$/);
+            if (labeled) {
+                const cleanLabel = escapeHtml(labeledArrows[Number(labeled[1])] || '');
+                return `<span class="math-arrow"><span class="math-arrow-label">${cleanLabel}</span><span class="math-arrow-line">──────▶</span></span>`;
+            }
+            if (['→', '←', '↔'].includes(part.trim())) {
+                return `<span class="math-arrow math-arrow-simple"><span class="math-arrow-line">${escapeHtml(part.trim())}</span></span>`;
+            }
+            return part.trim().split(/\s+/).filter(Boolean).map(token => `<span class="math-token">${escapeHtml(token)}</span>`).join(' ');
+        }).join(' ');
+
+        return `<div class="math-block"><div class="math-flow">${html}</div></div>`;
     }
 
     function render(rawText) {

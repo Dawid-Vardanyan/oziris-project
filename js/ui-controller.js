@@ -276,11 +276,11 @@
                 const msgDiv = document.createElement('div');
                 const isUser = role === 'user';
 
-                msgDiv.className = `chat-message flex items-end gap-3 ${isUser ? 'ml-auto flex-row-reverse' : ''}`;
+                msgDiv.className = `chat-message chat-message-${isUser ? 'user' : 'ai'} flex items-end gap-3 ${isUser ? 'flex-row-reverse' : ''}`;
 
                 // Avatar
                 const avatar = document.createElement('div');
-                avatar.className = `w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border ${isUser ? 'bg-blue-600 border-blue-400/30' : 'bg-gray-800 border-oziris-500/30'}`;
+                avatar.className = `chat-avatar w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 border ${isUser ? 'bg-blue-600 border-blue-400/30' : 'bg-gray-800 border-oziris-500/30'}`;
                 avatar.innerHTML = isUser ? '<i class="ph-fill ph-user text-white text-sm"></i>' : '<i class="ph-fill ph-hexagon text-oziris-400 text-sm"></i>';
 
                 // Dymek wiadomości. AI output is rendered through the MarkdownRenderer module.

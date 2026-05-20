@@ -204,3 +204,176 @@
         letter-spacing: 0.04em;
     }
 }
+
+/* Content-based responsiveness: works even when the app is inside a narrow pane but the browser viewport is wide. */
+.message-content {
+    container-type: inline-size;
+}
+
+.message-content p,
+.message-content li,
+.message-content blockquote,
+.message-content h1,
+.message-content h2,
+.message-content h3,
+.message-content h4 {
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
+.message-content .table-wrapper {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.message-content table {
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+.message-content th,
+.message-content td {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.message-content pre {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+}
+
+.message-content pre code {
+    display: block;
+    min-width: 0;
+    max-width: 100%;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.message-content .math-block {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+}
+
+.message-content .math-block .math-flow {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.35rem 0.45rem;
+    min-width: 0;
+    max-width: 100%;
+}
+
+.message-content .math-block .math-token {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+}
+
+@container (max-width: 720px) {
+    .message-content .table-wrapper {
+        overflow-x: hidden;
+    }
+
+    .message-content table,
+    .message-content thead,
+    .message-content tbody,
+    .message-content tr,
+    .message-content th,
+    .message-content td {
+        display: block;
+        width: 100%;
+    }
+
+    .message-content thead {
+        display: none;
+    }
+
+    .message-content tr {
+        border-bottom: 1px solid rgba(75, 85, 99, 0.75);
+    }
+
+    .message-content tr:last-child {
+        border-bottom: 0;
+    }
+
+    .message-content td {
+        border-bottom: 1px solid rgba(75, 85, 99, 0.35);
+        padding: 0.65rem 0.75rem;
+    }
+
+    .message-content td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 0.2rem;
+        color: #A5F3FC;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+}
+
+/* Fallback for browsers without container queries. */
+@media (max-width: 900px) {
+    .message-content .table-wrapper {
+        overflow-x: hidden;
+    }
+
+    .message-content table,
+    .message-content thead,
+    .message-content tbody,
+    .message-content tr,
+    .message-content th,
+    .message-content td {
+        display: block;
+        width: 100%;
+    }
+
+    .message-content thead {
+        display: none;
+    }
+
+    .message-content tr {
+        border-bottom: 1px solid rgba(75, 85, 99, 0.75);
+    }
+
+    .message-content tr:last-child {
+        border-bottom: 0;
+    }
+
+    .message-content td {
+        border-bottom: 1px solid rgba(75, 85, 99, 0.35);
+        padding: 0.65rem 0.75rem;
+    }
+
+    .message-content td::before {
+        content: attr(data-label);
+        display: block;
+        margin-bottom: 0.2rem;
+        color: #A5F3FC;
+        font-size: 0.72rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+    }
+}
