@@ -53,48 +53,9 @@ body {
     pointer-events: auto !important;
 }
 
-/* Responsive chat layout fixes */
-#chatArea,
-#messagesContainer {
-    min-width: 0;
-    max-width: 100%;
-    overflow-x: hidden;
-}
-
-.chat-message {
-    width: 100%;
-    max-width: min(48rem, calc(100% - 0.25rem));
-    min-width: 0;
-}
-
-.chat-message.ml-auto {
-    margin-left: auto;
-}
-
-.chat-bubble {
-    min-width: 0;
-    max-width: 100%;
-    overflow: hidden;
-}
-
-.chat-bubble .message-content {
-    min-width: 0;
-    max-width: 100%;
-}
-
-@media (max-width: 640px) {
-    .chat-message {
-        max-width: 100%;
-        gap: 0.5rem;
-    }
-
-    .chat-bubble {
-        padding: 0.85rem;
-    }
-}
-
-/* Hard responsive containment fixes for chat messages.
-   These prevent tables, code blocks, and AI diagrams from forcing the whole app wider. */
+/* Responsive chat layout fixes
+   The app can be wide, narrow, or embedded in a weird browser pane because apparently layouts enjoy drama.
+   These rules make AI bubbles use available room on large screens while still shrinking safely on small screens. */
 *, *::before, *::after {
     box-sizing: border-box;
 }
@@ -127,6 +88,8 @@ header {
 
 #messagesContainer {
     width: 100%;
+    max-width: 100%;
+    min-width: 0;
     overflow-x: hidden;
     align-items: stretch;
 }
@@ -140,42 +103,65 @@ header {
     white-space: nowrap;
 }
 
-/* Message width policy:
-   - AI answers can grow wide on large screens, so long Markdown content does not look like a pillar.
-   - User messages stay a little narrower for readability.
-   - Both still collapse to the available width on small panes. */
+/* Hard override for message widths.
+   Rows now always occupy the chat width. The bubble decides its own size.
+   This prevents user bubbles from collapsing into a tragic cyan skyscraper. */
 .chat-message {
-    width: 100%;
-    max-width: min(72rem, 100%);
-    min-width: 0;
+    box-sizing: border-box;
+    display: flex;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
     overflow: visible;
 }
 
-.chat-message-user {
-    margin-left: auto;
-    max-width: min(56rem, 88%);
-}
-
 .chat-message-ai {
-    margin-right: auto;
-    max-width: min(72rem, 100%);
+    width: min(100%, 1280px) !important;
+    max-width: calc(100% - 1rem) !important;
+    margin-right: auto !important;
+    margin-left: 0 !important;
+    justify-content: flex-start;
 }
 
+.chat-message-user {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    justify-content: flex-start;
+}
 
 .chat-avatar {
     flex: 0 0 2rem;
 }
 
 .chat-bubble {
-    flex: 1 1 0%;
-    width: auto;
-    min-width: 0;
-    max-width: 100%;
+    box-sizing: border-box;
+    min-width: 0 !important;
+    max-width: 100% !important;
     overflow: hidden;
 }
 
+.chat-message-ai .chat-bubble {
+    flex: 1 1 auto;
+    width: 100% !important;
+}
+
+.chat-message-user .chat-bubble {
+    flex: 0 1 auto;
+    width: fit-content !important;
+    max-width: min(920px, calc(100% - 3.25rem)) !important;
+}
+
+.chat-message-user .message-content {
+    width: auto !important;
+    max-width: 100% !important;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
 .chat-bubble .message-content {
-    width: 100%;
     min-width: 0;
     max-width: 100%;
     overflow: hidden;
@@ -186,17 +172,24 @@ header {
     max-width: 100%;
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
     #chatArea {
         padding-left: 0.75rem;
         padding-right: 0.75rem;
     }
 
-    .chat-message {
-        max-width: 100%;
+    .chat-message,
+    .chat-message-ai,
+    .chat-message-user {
+        width: 100% !important;
+        max-width: 100% !important;
     }
 
-    .chat-message .chat-avatar {
-        flex-basis: 2rem;
+    .chat-message {
+        gap: 0.5rem;
+    }
+
+    .chat-bubble {
+        padding: 0.85rem;
     }
 }

@@ -40,3 +40,22 @@ This build contains stronger chat containment rules. Wide AI content such as Mar
 
 ## Layout note
 AI messages are allowed to expand up to `72rem` on wide screens while still shrinking to the current chat pane width on narrow screens. User messages stay slightly narrower for readability.
+
+## Latest layout fix
+
+AI messages are now allowed to expand across the available chat width up to 1280px, while user messages stay narrower. The CSS uses hard overrides in `css/app.css` so old Tailwind utility limits and browser cache remnants cannot keep the previous narrow 48rem cap alive.
+
+
+## Code formatting / syntax highlighting
+
+Fenced code blocks are highlighted when the AI includes a language name after the opening triple backticks, for example:
+
+```sql
+SELECT employee_id, SUM(minutes_worked) AS total_minutes
+FROM employee_hours
+GROUP BY employee_id;
+```
+
+Supported highlighters: SQL, JavaScript, TypeScript, Python, JSON, HTML/XML, CSS, Bash, PowerShell, YAML, and Markdown.
+
+There is also a small automatic detector for unlabeled blocks, but explicit labels are more reliable. Tell your LLM to output code blocks like ` ```sql `, ` ```python `, ` ```json `, etc. Tiny markup rituals, because apparently the future still requires hinting.

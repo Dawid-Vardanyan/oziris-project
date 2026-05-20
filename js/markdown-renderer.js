@@ -181,6 +181,204 @@ const MarkdownRenderer = (() => {
         return `<div class="math-block"><div class="math-flow">${html}</div></div>`;
     }
 
+    const LANGUAGE_ALIASES = {
+        sql: 'sql', mysql: 'sql', postgres: 'sql', postgresql: 'sql', sqlite: 'sql', tsql: 'sql', plsql: 'sql',
+        js: 'javascript', javascript: 'javascript', jsx: 'javascript', node: 'javascript',
+        ts: 'typescript', typescript: 'typescript', tsx: 'typescript',
+        py: 'python', python: 'python', python3: 'python',
+        json: 'json', jsonc: 'json',
+        html: 'html', htm: 'html', xml: 'xml', svg: 'xml',
+        css: 'css', scss: 'css', sass: 'css',
+        sh: 'bash', bash: 'bash', shell: 'bash', zsh: 'bash', powershell: 'powershell', ps1: 'powershell',
+        yaml: 'yaml', yml: 'yaml',
+        md: 'markdown', markdown: 'markdown',
+        text: 'text', txt: 'text', plaintext: 'text'
+    };
+
+    const LANGUAGE_LABELS = {
+        sql: 'SQL', javascript: 'JavaScript', typescript: 'TypeScript', python: 'Python', json: 'JSON',
+        html: 'HTML', xml: 'XML', css: 'CSS', bash: 'Bash', powershell: 'PowerShell', yaml: 'YAML',
+        markdown: 'Markdown', text: 'Text'
+    };
+
+    function normalizeLanguage(language) {
+        const cleaned = String(language || '').trim().toLowerCase().replace(/^language-/, '');
+        return LANGUAGE_ALIASES[cleaned] || cleaned || '';
+    }
+
+    function detectLanguage(code) {
+        const sample = String(code || '').trim();
+        if (!sample) return 'text';
+
+        if (/^\s*(select|with|insert|update|delete|create|alter|drop)\b/i.test(sample) ||
+            /\b(from|join|where|group\s+by|order\s+by|having|limit|offset)\b/i.test(sample)) {
+            return 'sql';
+        }
+        if (/^\s*[\[{]/.test(sample)) {
+            try { JSON.parse(sample); return 'json'; } catch (_error) { /* keep guessing, because computers enjoy ambiguity */ }
+        }
+        if (/^\s*<(!doctype|html|head|body|div|span|script|style|[a-z][\w:-]*)(\s|>|\/)/i.test(sample)) return 'html';
+        if (/^\s*[.#]?[a-z][\w-]*\s*\{|\b(display|position|color|background|font-size|margin|padding)\s*:/i.test(sample)) return 'css';
+        if (/^\s*(def|class|import|from|async\s+def|print\()\b/m.test(sample) || /:\s*\n\s+(return|if|for|while|try)\b/m.test(sample)) return 'python';
+        if (/\b(function|const|let|var|=>|console\.log|import\s+.*\s+from|export\s+)\b/.test(sample)) return 'javascript';
+        if (/^\s*(#!\/|npm\s|yarn\s|pnpm\s|cd\s|ls\s|echo\s|curl\s|docker\s|git\s)/m.test(sample)) return 'bash';
+        if (/^\s*[\w.-]+:\s*.+$/m.test(sample) && !/[{};]/.test(sample)) return 'yaml';
+        return 'text';
+    }
+
+    function cloneRegex(regex) {
+        const flags = regex.flags.includes('g') ? regex.flags : `${regex.flags}g`;
+        return new RegExp(regex.source, flags);
+    }
+
+    function highlightByRules(code, rules) {
+        const source = String(code ?? '');
+        const ranges = [];
+
+        rules.forEach((rule, priority) => {
+            const regex = cloneRegex(rule.regex);
+            let match;
+            while ((match = regex.exec(source)) !== null) {
+                const text = match[0];
+                if (!text) {
+                    regex.lastIndex += 1;
+                    continue;
+                }
+                ranges.push({ start: match.index, end: match.index + text.length, type: rule.type, priority });
+            }
+        });
+
+        ranges.sort((a, b) => a.start - b.start || a.priority - b.priority || (b.end - b.start) - (a.end - a.start));
+
+        const accepted = [];
+        for (const range of ranges) {
+            const overlaps = accepted.some(existing => range.start < existing.end && range.end > existing.start);
+            if (!overlaps) accepted.push(range);
+        }
+        accepted.sort((a, b) => a.start - b.start);
+
+        let cursor = 0;
+        let html = '';
+        accepted.forEach(range => {
+            html += escapeHtml(source.slice(cursor, range.start));
+            html += `<span class="token ${range.type}">${escapeHtml(source.slice(range.start, range.end))}</span>`;
+            cursor = range.end;
+        });
+        html += escapeHtml(source.slice(cursor));
+        return html;
+    }
+
+    const SQL_KEYWORDS = /\b(?:SELECT|FROM|WHERE|JOIN|INNER|LEFT|RIGHT|FULL|OUTER|CROSS|ON|GROUP\s+BY|ORDER\s+BY|HAVING|LIMIT|OFFSET|WITH|AS|INSERT|INTO|VALUES|UPDATE|SET|DELETE|CREATE|ALTER|DROP|TABLE|VIEW|INDEX|PRIMARY|KEY|FOREIGN|REFERENCES|CONSTRAINT|DATABASE|SCHEMA|TRIGGER|PROCEDURE|FUNCTION|CASE|WHEN|THEN|ELSE|END|AND|OR|NOT|NULL|IS|IN|EXISTS|BETWEEN|LIKE|ILIKE|DISTINCT|UNION|ALL|INTERSECT|EXCEPT|COUNT|SUM|AVG|MIN|MAX|ROUND|CAST|CONVERT|COALESCE|NULLIF|DATE|DATETIME|TIMESTAMP|INTERVAL|OVER|PARTITION\s+BY|ROW_NUMBER|RANK|DENSE_RANK|DESC|ASC|TRUE|FALSE)\b/gi;
+
+    const HIGHLIGHT_RULES = {
+        sql: [
+            { type: 'comment', regex: /--.*$/gm },
+            { type: 'comment', regex: /\/\*[\s\S]*?\*\//g },
+            { type: 'string', regex: /'(?:''|[^'])*'|"(?:""|[^"])*"/g },
+            { type: 'number', regex: /\b\d+(?:\.\d+)?\b/g },
+            { type: 'keyword', regex: SQL_KEYWORDS },
+            { type: 'operator', regex: /\b(?:AND|OR|NOT|IS|IN|LIKE|BETWEEN)\b|[+\-*\/%=<>!]+/gi }
+        ],
+        javascript: [
+            { type: 'comment', regex: /\/\/.*$/gm },
+            { type: 'comment', regex: /\/\*[\s\S]*?\*\//g },
+            { type: 'string', regex: /`(?:\\[\s\S]|[^`])*`|'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"/g },
+            { type: 'number', regex: /\b\d+(?:\.\d+)?\b/g },
+            { type: 'keyword', regex: /\b(?:const|let|var|function|return|if|else|for|while|do|switch|case|break|continue|try|catch|finally|throw|class|extends|new|this|super|import|from|export|default|async|await|yield|typeof|instanceof|in|of|null|undefined|true|false)\b/g },
+            { type: 'function', regex: /\b[A-Za-z_$][\w$]*(?=\s*\()/g },
+            { type: 'operator', regex: /=>|[+\-*\/%=<>!&|?:]+/g }
+        ],
+        typescript: [
+            { type: 'comment', regex: /\/\/.*$/gm },
+            { type: 'comment', regex: /\/\*[\s\S]*?\*\//g },
+            { type: 'string', regex: /`(?:\\[\s\S]|[^`])*`|'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"/g },
+            { type: 'number', regex: /\b\d+(?:\.\d+)?\b/g },
+            { type: 'keyword', regex: /\b(?:const|let|var|function|return|if|else|for|while|switch|case|break|continue|try|catch|finally|throw|class|interface|type|extends|implements|public|private|protected|readonly|new|this|super|import|from|export|default|async|await|null|undefined|true|false|string|number|boolean|unknown|any|void|never)\b/g },
+            { type: 'function', regex: /\b[A-Za-z_$][\w$]*(?=\s*\()/g },
+            { type: 'operator', regex: /=>|[+\-*\/%=<>!&|?:]+/g }
+        ],
+        python: [
+            { type: 'comment', regex: /#.*$/gm },
+            { type: 'string', regex: /'''[\s\S]*?'''|"""[\s\S]*?"""|'(?:\\.|[^'\\])*'|"(?:\\.|[^"\\])*"/g },
+            { type: 'number', regex: /\b\d+(?:\.\d+)?\b/g },
+            { type: 'keyword', regex: /\b(?:def|class|return|if|elif|else|for|while|break|continue|try|except|finally|raise|with|as|import|from|pass|lambda|yield|async|await|in|is|not|and|or|None|True|False|self|global|nonlocal)\b/g },
+            { type: 'function', regex: /\b[A-Za-z_]\w*(?=\s*\()/g },
+            { type: 'operator', regex: /[+\-*\/%=<>!&|:]+/g }
+        ],
+        json: [
+            { type: 'property', regex: /"(?:\\.|[^"\\])*"(?=\s*:)/g },
+            { type: 'string', regex: /"(?:\\.|[^"\\])*"/g },
+            { type: 'number', regex: /-?\b\d+(?:\.\d+)?(?:e[+-]?\d+)?\b/gi },
+            { type: 'keyword', regex: /\b(?:true|false|null)\b/g }
+        ],
+        html: [
+            { type: 'comment', regex: /<!--[\s\S]*?-->/g },
+            { type: 'tag', regex: /<\/?[A-Za-z][\w:-]*|\/?>/g },
+            { type: 'attribute', regex: /\b[A-Za-z_:][\w:.-]*(?=\s*=)/g },
+            { type: 'string', regex: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g }
+        ],
+        xml: [
+            { type: 'comment', regex: /<!--[\s\S]*?-->/g },
+            { type: 'tag', regex: /<\/?[A-Za-z][\w:-]*|\/?>/g },
+            { type: 'attribute', regex: /\b[A-Za-z_:][\w:.-]*(?=\s*=)/g },
+            { type: 'string', regex: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g }
+        ],
+        css: [
+            { type: 'comment', regex: /\/\*[\s\S]*?\*\//g },
+            { type: 'string', regex: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g },
+            { type: 'property', regex: /\b[-A-Za-z]+(?=\s*:)/g },
+            { type: 'number', regex: /\b\d+(?:\.\d+)?(?:px|rem|em|%|vh|vw|s|ms)?\b/g },
+            { type: 'keyword', regex: /\b(?:display|flex|grid|block|inline|none|relative|absolute|fixed|sticky|auto|hidden|visible|solid|dashed|center|left|right|important)\b/g },
+            { type: 'operator', regex: /[{}:;,>+~*#.=]/g }
+        ],
+        bash: [
+            { type: 'comment', regex: /#.*$/gm },
+            { type: 'string', regex: /"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'/g },
+            { type: 'keyword', regex: /\b(?:if|then|else|elif|fi|for|while|do|done|case|esac|function|in|export|sudo|cd|echo|cat|grep|awk|sed|curl|wget|git|docker|npm|pnpm|yarn)\b/g },
+            { type: 'number', regex: /\b\d+\b/g },
+            { type: 'operator', regex: /[|&;<>()$=]+/g }
+        ],
+        powershell: [
+            { type: 'comment', regex: /#.*$/gm },
+            { type: 'string', regex: /"(?:`.|[^"`])*"|'(?:''|[^'])*'/g },
+            { type: 'variable', regex: /\$[A-Za-z_][\w:]*/g },
+            { type: 'keyword', regex: /\b(?:if|else|elseif|foreach|for|while|switch|function|param|return|try|catch|finally|throw|Write-Host|Get-ChildItem|Set-Location|New-Item|Remove-Item)\b/gi },
+            { type: 'number', regex: /\b\d+(?:\.\d+)?\b/g },
+            { type: 'operator', regex: /-[A-Za-z]+|[|&;<>()=]+/g }
+        ],
+        yaml: [
+            { type: 'comment', regex: /#.*$/gm },
+            { type: 'property', regex: /^\s*[-?]?\s*[A-Za-z0-9_.-]+(?=\s*:)/gm },
+            { type: 'string', regex: /"(?:\\.|[^"\\])*"|'(?:''|[^'])*'/g },
+            { type: 'number', regex: /\b\d+(?:\.\d+)?\b/g },
+            { type: 'keyword', regex: /\b(?:true|false|null|yes|no|on|off)\b/gi }
+        ],
+        markdown: [
+            { type: 'comment', regex: /<!--[\s\S]*?-->/g },
+            { type: 'keyword', regex: /^\s{0,3}#{1,6}\s+.+$/gm },
+            { type: 'operator', regex: /[*_`>#|\[\]()!-]+/g }
+        ]
+    };
+
+    function highlightCode(code, language) {
+        const normalized = normalizeLanguage(language) || detectLanguage(code);
+        const rules = HIGHLIGHT_RULES[normalized];
+        if (!rules || normalized === 'text') return escapeHtml(code);
+        return highlightByRules(code, rules);
+    }
+
+    function renderCodeBlock(code, language) {
+        const normalized = normalizeLanguage(language) || detectLanguage(code);
+        const label = LANGUAGE_LABELS[normalized] || (normalized ? normalized.toUpperCase() : 'CODE');
+        const languageClass = normalized ? ` language-${escapeHtml(normalized)}` : '';
+        const highlighted = highlightCode(code, normalized);
+
+        return `<figure class="code-block" data-language="${escapeHtml(normalized || 'text')}">` +
+            `<figcaption><span>${escapeHtml(label)}</span></figcaption>` +
+            `<pre><code class="syntax-highlight${languageClass}">${highlighted}</code></pre>` +
+            `</figure>`;
+    }
+
     function render(rawText) {
         const lines = normalizeText(rawText).split('\n');
         const html = [];
@@ -225,8 +423,7 @@ const MarkdownRenderer = (() => {
             const fence = trimmed.match(/^```\s*([\w-]*)\s*$/);
             if (fence) {
                 if (inCodeBlock) {
-                    const languageClass = codeFenceLanguage ? ` class="language-${escapeHtml(codeFenceLanguage)}"` : '';
-                    html.push(`<pre><code${languageClass}>${escapeHtml(codeLines.join('\n'))}</code></pre>`);
+                    html.push(renderCodeBlock(codeLines.join('\n'), codeFenceLanguage));
                     inCodeBlock = false;
                     codeLines = [];
                     codeFenceLanguage = '';
@@ -318,8 +515,7 @@ const MarkdownRenderer = (() => {
         }
 
         if (inCodeBlock) {
-            const languageClass = codeFenceLanguage ? ` class="language-${escapeHtml(codeFenceLanguage)}"` : '';
-            html.push(`<pre><code${languageClass}>${escapeHtml(codeLines.join('\n'))}</code></pre>`);
+            html.push(renderCodeBlock(codeLines.join('\n'), codeFenceLanguage));
         }
 
         flushBlocks();
