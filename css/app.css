@@ -150,9 +150,9 @@ header {
     box-sizing: border-box;
     display: block;
 
-    flex: 1 1 auto;
-    width: fit-content !important;
-    min-width: min(12rem, 100%) !important;
+    flex: 0 0 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
     max-width: min(80%, 48rem) !important;
 
     margin-left: auto !important;
@@ -162,15 +162,16 @@ header {
 }
 
 .chat-message-user .message-content {
-    display: block;
+    box-sizing: border-box;
+    display: inline-block;
 
-    width: auto !important;
-    max-width: 100% !important;
+    width: max-content !important;
+    max-width: min(80vw, 48rem) !important;
     min-width: 0 !important;
 
-    white-space: pre-wrap;
-    overflow-wrap: break-word;
-    word-break: normal;
+    white-space: pre-wrap !important;
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
 
     text-align: left;
     overflow: visible !important;
