@@ -140,20 +140,27 @@ header {
     white-space: nowrap;
 }
 
+/* Message width policy:
+   - AI answers can grow wide on large screens, so long Markdown content does not look like a pillar.
+   - User messages stay a little narrower for readability.
+   - Both still collapse to the available width on small panes. */
 .chat-message {
     width: 100%;
-    max-width: min(48rem, 100%);
+    max-width: min(72rem, 100%);
     min-width: 0;
     overflow: visible;
 }
 
 .chat-message-user {
     margin-left: auto;
+    max-width: min(56rem, 88%);
 }
 
 .chat-message-ai {
     margin-right: auto;
+    max-width: min(72rem, 100%);
 }
+
 
 .chat-avatar {
     flex: 0 0 2rem;

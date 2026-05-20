@@ -37,3 +37,6 @@ The renderer supports:
 ## Overflow/responsive fix
 
 This build contains stronger chat containment rules. Wide AI content such as Markdown tables, code blocks and LaTeX-style flow diagrams is constrained inside the chat bubble. Tables switch to stacked cards based on the message width, not only the browser viewport width, so it also works when the app is shown in a narrow pane.
+
+## Layout note
+AI messages are allowed to expand up to `72rem` on wide screens while still shrinking to the current chat pane width on narrow screens. User messages stay slightly narrower for readability.
