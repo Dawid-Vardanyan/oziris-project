@@ -1,0 +1,48 @@
+/* FINAL FIX: user chat bubble dynamic width without vertical text collapse */
+.chat-message-user {
+    display: flex !important;
+    justify-content: flex-end !important;
+    align-items: flex-start !important;
+    width: 100% !important;
+    min-width: 0 !important;
+}
+
+.chat-message-user .chat-bubble {
+    box-sizing: border-box !important;
+
+    display: inline-block !important;
+    flex: 0 1 auto !important;
+
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: min(80%, 48rem) !important;
+
+    margin-left: auto !important;
+    margin-right: 0 !important;
+
+    overflow: visible !important;
+}
+
+.chat-message-user .message-content {
+    box-sizing: border-box !important;
+
+    display: inline-block !important;
+
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+
+    container-type: normal !important;
+
+    overflow-wrap: break-word !important;
+    word-break: normal !important;
+    white-space: pre-wrap !important;
+
+    text-align: left !important;
+    overflow: visible !important;
+}
+
+.chat-message-user .message-content p {
+    display: inline !important;
+    margin: 0 !important;
+}
