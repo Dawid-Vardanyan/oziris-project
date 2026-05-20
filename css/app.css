@@ -201,3 +201,91 @@ header {
         padding: 0.85rem;
     }
 }
+
+/* FINAL message layout repair: use CSS Grid instead of flex.
+   This prevents user bubbles from collapsing into one-character columns while keeping
+   AI bubbles wide and responsive. */
+#messagesContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.chat-message,
+.chat-message.chat-message-user,
+.chat-message.chat-message-ai {
+    display: grid !important;
+    grid-template-columns: 2rem minmax(0, 1fr) 2rem;
+    column-gap: 0.75rem;
+    align-items: end;
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+}
+
+.chat-message-ai .chat-avatar {
+    grid-column: 1;
+    justify-self: center;
+}
+
+.chat-message-ai .chat-bubble {
+    grid-column: 2;
+    justify-self: start;
+    width: min(1280px, 100%) !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+}
+
+.chat-message-user .chat-avatar {
+    grid-column: 3;
+    justify-self: center;
+}
+
+.chat-message-user .chat-bubble,
+.chat-message-user .chat-bubble-user-short,
+.chat-message-user .chat-bubble-user-long {
+    grid-column: 2;
+    justify-self: end;
+    width: fit-content !important;
+    max-width: min(920px, 100%) !important;
+    min-width: 0 !important;
+    white-space: normal !important;
+    overflow: hidden !important;
+}
+
+.chat-message-user .message-content,
+.chat-message-user .message-content * {
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+}
+
+.chat-message-user .message-content {
+    display: block !important;
+    width: auto !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+}
+
+@media (max-width: 640px) {
+    .chat-message,
+    .chat-message.chat-message-user,
+    .chat-message.chat-message-ai {
+        grid-template-columns: 1.75rem minmax(0, 1fr) 1.75rem;
+        column-gap: 0.5rem;
+    }
+
+    .chat-avatar {
+        width: 1.75rem !important;
+        height: 1.75rem !important;
+        flex-basis: 1.75rem !important;
+    }
+
+    .chat-message-user .chat-bubble,
+    .chat-message-user .chat-bubble-user-short,
+    .chat-message-user .chat-bubble-user-long {
+        max-width: 100% !important;
+    }
+}
