@@ -377,3 +377,58 @@
         letter-spacing: 0.04em;
     }
 }
+
+/* Syntax highlighting for fenced code blocks. AI should ideally use ```sql, ```js, etc. */
+.message-content .code-block {
+    margin: 0.95rem 0;
+    max-width: 100%;
+    overflow: hidden;
+    border: 1px solid rgba(75, 85, 99, 0.78);
+    border-radius: 0.9rem;
+    background: #0B0F19;
+}
+
+.message-content .code-block figcaption {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid rgba(75, 85, 99, 0.62);
+    background: rgba(17, 24, 39, 0.95);
+    padding: 0.48rem 0.75rem;
+    color: #A5F3FC;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.message-content .code-block pre {
+    margin: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.message-content .code-block code.syntax-highlight {
+    color: #E5E7EB;
+}
+
+.message-content .token.comment { color: #64748B; font-style: italic; }
+.message-content .token.keyword { color: #A78BFA; font-weight: 700; }
+.message-content .token.string { color: #86EFAC; }
+.message-content .token.number { color: #FBBF24; }
+.message-content .token.operator { color: #67E8F9; }
+.message-content .token.function { color: #93C5FD; }
+.message-content .token.property { color: #F0ABFC; }
+.message-content .token.attribute { color: #FACC15; }
+.message-content .token.tag { color: #FB7185; }
+.message-content .token.variable { color: #FDA4AF; }
+
+.message-content .language-sql .token.keyword {
+    color: #38BDF8;
+}
+
+.message-content .language-sql .token.function {
+    color: #C4B5FD;
+}
